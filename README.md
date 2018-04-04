@@ -38,6 +38,11 @@ If you satisfy all the Python library requirements, you can simply run `tf_activ
 
 ### Usage examples
 
+Unpack the motif files (see below for how to create your own, instead):
+
+    $ mkdir /path/to/hg19_motifs
+    $ tar xvfz motifs/human_motifs.tar.gz --directory /path/to/hg19_motifs
+
 Calculate the MD-scores for the first biological condition:
 
     $ python process_atac.py --prefix 'mcf7_DMSO' --threads 8 --atac-peaks /path/to/DMSO/ATAC/peaks/file \
@@ -73,7 +78,7 @@ This entire process can be executed in this order by calling `tf_activity_change
 
 ### Motif Files
 
-To generate your own files for each motif, you can use FIMO in combination with the downloaded `.meme` files from your TF database of choice. For example, if using HOCOMOCO, you can create the motif file for TP53 using their mononucleotide model with a p-value threshold of 0.000001 by:
+Feel free to use the motif files provided, [human_motifs.tar.gz](http://dowell.colorado.edu/pubs/DAStk/human_motifs.tar.gz) and [mouse_motifs.tar.gz](http://dowell.colorado.edu/pubs/DAStk/mouse_motifs.tar.gz) for the `hg19` and `mm10` reference genomes, respectively. They have been generated from HOCOMOCO's v10 mononucleotide model. To generate your own files for each motif, you can use FIMO in combination with the downloaded `.meme` files from your TF database of choice. For example, if using HOCOMOCO, you can create the motif file for TP53 using their mononucleotide model with a p-value threshold of 0.000001 by:
 
     $ fimo -max-stored-scores 10000000 --thresh 1e-6 -oc /path/to/output/directory -motif /path/to/motif/file \
       /path/to/HOCOMOCOv11_HUMAN_mono_meme_format.meme /path/to/whole_genome.fa
