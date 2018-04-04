@@ -1,0 +1,27 @@
+#!/bin/sh
+
+if [[ $# < 6 ]]; then
+  echo "\nUsage:\n";
+  echo "$0 PREFIX CONDITION_1 CONDITION_2 ATAC_PEAKS_FILE_1 ATAC_PEAKS_FILE_2 MOTIFS_PATH [NUMBER_OF_PROCESSES]";
+  echo "\n(Only provide the number of processes if in a multiprocessing-able environment)";
+  exit 1;
+fi
+
+PREFIX=$1
+COND1=$2
+COND2=$3
+ATACPEAKS1=$4
+ATACPEAKS2=$5
+MOTIFS=$6
+THREADS=$7  # optional
+
+PREFIX1=`echo "${PREFIX}_${COND1}"`
+PREFIX2=`echo "${PREFIX}_${COND2}"`
+
+if [[ -z $7 ]]; then
+  THREADS=1
+fi
+
+python process_atac.py --prefix $PREFIX1 --threads $THREADS --atac-peaks $ATACPEAKS1 --motif-path $MOTIFS
+python process_atac.py --prefix $PREFIX2 --threads $THREADS --atac-peaks $ATACPEAKS2 --motif-path $MOTIFS
+python differential_md_score.py --prefix $PREFIX -1 $COND1 -2 $COND2

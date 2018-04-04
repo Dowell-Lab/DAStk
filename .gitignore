@@ -1,0 +1,11 @@
+configparams.py
+*.png
+*.txt
+*.csv
+*.npy
+*.swp
+*.pyc
+*.bed
+*.DONE
+*.sbatch.o*
+*.sbatch.e*
