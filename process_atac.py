@@ -1,20 +1,21 @@
+#! /usr/bin/env/python
+
+from __future__ import print_function
 import argparse
 import csv
 import datetime
 import glob
 import imp
-import matplotlib as mpl
-
-# to prevent DISPLAY weirdness when running in the cluster:
-mpl.use('Agg')
-import matplotlib.pyplot as plt
-plt.ioff()
-
 import multiprocessing
 import numpy as np
 import os.path
 import pandas as pd
-
+import sys
+import matplotlib as mpl
+# to prevent DISPLAY weirdness when running in the cluster:
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+plt.ioff()
 from functools import partial
 from operator import itemgetter
 
@@ -99,7 +100,7 @@ def find_motifs_in_chrom(current_chrom, tf_motif_filename):
     try:
         motif_region = next(motif_iter)   # this gets the next motif in the list
     except StopIteration:
-        print 'No motifs for chromosome ' + current_chrom + ' on file ' + tf_motif_filename
+        print('No motifs for chromosome ' + current_chrom + ' on file ' + tf_motif_filename)
         return None
 
     peak_count_overlapping_motif = 0
@@ -195,7 +196,7 @@ def get_md_score(tf_motif_filename):
 
 
 if __name__=='__main__':
-    print 'Starting --- ' + str(datetime.datetime.now())
+    print('Starting --- ' + str(datetime.datetime.now()))
     atac_peaks_filename = ''
     if args.atac_peaks_filename:
         atac_peaks_filename = args.atac_peaks_filename
@@ -224,8 +225,8 @@ if __name__=='__main__':
     atac_peak_mean = np.mean(all_widths)
     atac_peak_std = np.std(all_widths)
     evaluation_radius = (int(atac_peak_mean) + 2 * int(atac_peak_std)) / 2
-    print 'ATAC mean width: %d bp (std: %d bp). Determined an evaluation radius of %d bp' % \
-          (atac_peak_mean, atac_peak_std, evaluation_radius)
+    print('ATAC mean width: %d bp (std: %d bp). Determined an evaluation radius of %d bp' % \
+          (atac_peak_mean, atac_peak_std, evaluation_radius))
 
     # Start reading from the top of the ATAC-Seq BedGraph again
     atac_peaks_file.seek(0)
@@ -244,12 +245,12 @@ if __name__=='__main__':
     assert tf_motif_path != '', "Must provide a path to the files containing motif sites for this genome, either in the arguments or in a configuration file. Call with \"--help\" for more info."
     motif_filenames = glob.glob(tf_motif_path)
     motif_count = len(motif_filenames)
-    print "Processing motif files in %s" % tf_motif_path
+    print("Processing motif files in %s" % tf_motif_path)
     for filename in motif_filenames:
         filename_no_path = filename.split('/')[-1]
         if os.path.getsize(filename) > 0:
             [md_score, small_window, large_window, motif_site_count, heat] = get_md_score(filename)
-            print 'The MD-score for ATAC reads vs %s is %.6f' % (filename_no_path, md_score)
+            print('The MD-score for ATAC reads vs %s is %.6f' % (filename_no_path, md_score))
             motif_stats.append({ 'motif_file': filename_no_path, \
                                  'md_score': md_score, \
                                  'small_window': small_window, \
@@ -267,7 +268,5 @@ if __name__=='__main__':
                            stat['large_window'], stat['motif_site_count'], stat['heat']))
     md_score_fp.close()
 
-    print 'All done --- %s' % str(datetime.datetime.now())
-
-
-
+    print('All done --- %s' % str(datetime.datetime.now()))
+    sys.exit(0)

@@ -1,15 +1,16 @@
-#!/usr/local/bin/python
+#! /usr/bin/env/python
 
+from __future__ import print_function
 import argparse
 import datetime
 import numpy as np
+import sys
 import matplotlib as mpl
 # to prevent display-related issues
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 plt.ioff()
 from matplotlib import cm
-
 from adjustText import adjust_text
 from scipy.stats import norm
 from argparse import RawTextHelpFormatter
@@ -38,7 +39,7 @@ P_VALUE_CUTOFF = float(args.p_value)
 
 if __name__=='__main__':
 
-    print 'Starting --- ' + str(datetime.datetime.now())
+    print('Starting --- ' + str(datetime.datetime.now()))
 
     control_mds = {}
     control_nr_peaks = {}
@@ -64,7 +65,7 @@ if __name__=='__main__':
             perturbation_nr_peaks[line_chunks[0][:-4]] = int(line_chunks[3])
             perturbation_barcode[line_chunks[0][:-4]] = line_chunks[5]
 
-    print 'Done gathering data, ready to plot --- ' + str(datetime.datetime.now())
+    print('Done gathering data, ready to plot --- ' + str(datetime.datetime.now()))
 
     control = []
     perturbation = []
@@ -85,15 +86,15 @@ if __name__=='__main__':
         x1 = p1 * n1
         x2 = p2 * n2
         if n1 == 0:
-            print '%s had an MD-score of 0 in %s' % (label, args.assay_1)
+            print('%s had an MD-score of 0 in %s' % (label, args.assay_1))
             n1 = 1
         if n2 == 0:
             x2 = p2 * n2
         if n1 == 0:
-            print '%s had an MD-score of 0 in %s' % (label, args.assay_1)
+            print('%s had an MD-score of 0 in %s' % (label, args.assay_1))
             n1 = 1
         if n2 == 0:
-            print '%s had an MD-score of 0 in %s' % (label, args.assay_2)
+            print('%s had an MD-score of 0 in %s' % (label, args.assay_2))
             n2 = 1
         pooled = (x1 + x2)/(n1 + n2)
         z_value = (p1 - p2) / np.sqrt(pooled * (1 - pooled) * ((1/n1) + (1/n2)))
@@ -127,7 +128,7 @@ if __name__=='__main__':
     for x, y, text, p_value in zip(nr_peaks, fold_change, np_labels, p_values):
         if p_value < P_VALUE_CUTOFF:
         #if (y > 0.02 or y < -0.02) and x > 12:
-            print '%s (%.3f, p-value = %.2E)' % (text, y, p_value)
+            print('%s (%.3f, p-value = %.2E)' % (text, y, p_value))
             label_color = 'maroon'
             if p_value < (P_VALUE_CUTOFF/10):
                 label_color = '#c64e50'
@@ -157,7 +158,7 @@ if __name__=='__main__':
 
     if args.gen_barcode:
         # Generate barcodes for each relevant TF, for both conditions
-        print 'Generating barcode plots for significant motifs...'
+        print('Generating barcode plots for significant motifs...')
         for relevant_tf in most_relevant_tfs:
             plt.clf()
             plt.title('Barcode plots for %s' % relevant_tf)
@@ -186,4 +187,5 @@ if __name__=='__main__':
 
             plt.savefig('%s_%s_barcode_%s_vs_%s.png' % (args.output_prefix, relevant_tf, args.assay_1, args.assay_2), dpi=600)
 
-    print 'All done --- ' + str(datetime.datetime.now())
+    print('All done --- ' + str(datetime.datetime.now()))
+    sys.exit(0)
