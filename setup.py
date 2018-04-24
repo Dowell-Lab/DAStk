@@ -17,7 +17,6 @@ setup(
     version='0.1.1',
     description='Differential ATAC-seq toolkit',
     long_description=long_description,
-    long_description_content_type='text/markdown',
     license='BSD',
     url='https://biof-git.colorado.edu/dowelllab/DAStk',
     author='Ignacio Tripodi',
@@ -36,6 +35,7 @@ setup(
 
     keywords='bioinformatics genomics chromatin ATAC-seq motif transcription_factor',
 
+    package_dir={'DAStk' : 'DAStk'},
     packages=['DAStk'],
 
     install_requires=[
@@ -51,8 +51,8 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'process_atac=process_atac:main',
-            'differential_md_score=differential_md_score:main',
+            'process_atac=DAStk:process_atac',
+            'differential_md_score=DAStk:differential_md_score',
         ],
     },
 

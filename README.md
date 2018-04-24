@@ -7,6 +7,16 @@ You will need the following inputs:
 - A pair of files listing peaks of ATAC-seq signal in two biological conditions (e.g. DMSO and drug-treated) in any BedGraph-compatible format (tab-delimited)
 - A set of files listing the putative binding sites across the reference genome of choice, one file per transcription factor motif, also in any BedGraph-like format. These are normally generated from position weight matrices (PWMs) available at TF model databases like [HOCOMOCO](http://hocomoco11.autosome.ru).
 
+### Install
+
+You can install DAStk using `pip`:
+
+    $ pip install DAStk
+
+This is the simplest option, and it will also create the executable commands `process_atac` and `differential_md_score`. Alternatively, you can clone this repository by running:
+
+    $ git clone https://biof-git.colorado.edu/dowelllab/DAStk
+
 ### Required Python libraries (can be installed thru `pip`):
 
 * numpy
@@ -14,13 +24,8 @@ You will need the following inputs:
 * matplotlib
 * scipy
 * adjustText
-* csv
-* glob
-* imp
 * pandas
 * multiprocessing
-* functools
-* operator
 
 These scripts feature comprehensive help when called with the `--help` argument. Every argument provides a short and long form (i.e. `-t` or `--threads`), and can either be provided as input arguments or via a configuration file, depending on your preference. The are normally two steps in a typical workflow:
 
@@ -29,12 +34,12 @@ These scripts feature comprehensive help when called with the `--help` argument.
 
 ### TL;DR;
 
-If you satisfy all the Python library requirements, you can simply run `tf_activity_changes` with the following syntax:
+If you satisfy all the Python library requirements, you can simply clone this repository and run `tf_activity_changes` with the following syntax:
 
     $ ./tf_activity_changes PREFIX CONDITION_1_NAME CONDITION_2_NAME CONDITION_1_ATAC_PEAKS_FILE \
       CONDITION_2_ATAC_PEAKS_FILE PATH_TO_MOTIF_FILES [NUMBER_OF_THREADS]
 
-... then use `differential_md_score.py` (instructions below, or via `--help`) to explore which TFs are changing the most in activity for different p-value cutoffs.
+... then use `differential_md_score` (instructions below, or via `--help`) to explore which TFs are changing the most in activity for different p-value cutoffs.
 
 ### Usage examples
 
@@ -45,12 +50,12 @@ Unpack the motif files (see below for how to create your own, instead):
 
 Calculate the MD-scores for the first biological condition:
 
-    $ python process_atac.py --prefix 'mcf7_DMSO' --threads 8 --atac-peaks /path/to/DMSO/ATAC/peaks/file \
+    $ process_atac --prefix 'mcf7_DMSO' --threads 8 --atac-peaks /path/to/DMSO/ATAC/peaks/file \
       --motif-path /path/to/directory/containing/motif/files
 
 The above command generates a file called `mcf7_DMSO_md_scores.txt`. The required prefix is a good way to keep track of what these new files represent. It's expected to be some sort of assay identifier and the biological condition, separated by a `_`; it's generally a good idea to use the cell type (or sample number) and a brief condition description (e.g. `k562_DMSO` or `SRR1234123_Metronidazole`). Alternatively, this could have been executed as:
 
-    $ python process_atac.py --prefix 'mcf7_DMSO' --threads 8 --config /path/to/config/file.py
+    $ process_atac --prefix 'mcf7_DMSO' --threads 8 --config /path/to/config/file.py
 
 ... where the contents of this configuration file `file.py` would look like:
 
@@ -59,12 +64,12 @@ The above command generates a file called `mcf7_DMSO_md_scores.txt`. The require
 
 We would then generate the same file, for the other condition we are comparing against:
 
-    $ python process_atac.py --prefix 'mcf7_Treatment' --threads 8 --atac-peaks /path/to/treatment/ATAC/peaks/file \
+    $ process_atac --prefix 'mcf7_Treatment' --threads 8 --atac-peaks /path/to/treatment/ATAC/peaks/file \
       --motif-path /path/to/directory/containing/motif/files
 
 The above generates a file called `mcf7_Treatment_md_scores.txt`. Finally:
 
-    $ python differential_md_score.py --prefix mcf7 --assay-1 DMSO --assay-2 Treatment --p-value 0.0000001 -b
+    $ differential_md_score --prefix mcf7 --assay-1 DMSO --assay-2 Treatment --p-value 0.0000001 -b
 
 The above generates an MA plot that labels the most significant TF activity changes, at a p-value cutoff of 1e-7. Note that the condition names (DMSO and Treatment) were the same ones used earlier as the second half of the prefix. The plots look like the example below:
 

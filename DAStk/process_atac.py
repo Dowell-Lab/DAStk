@@ -19,41 +19,6 @@ plt.ioff()
 from functools import partial
 from operator import itemgetter
 
-parser = argparse.ArgumentParser(description='This script analyzes ATAC-Seq and GRO-Seq data and produces various plots for further data analysis.', epilog='IMPORTANT: Please ensure that ALL bed files used with this script are sorted by the same criteria.')
-parser.add_argument('-x', '--prefix', dest='output_prefix', metavar='CELL_TYPE', \
-                    help='Cell type (k562, imr90, etc), primarily used for the output file prefix', required=True)
-parser.add_argument('-f', '--config', dest='config_filename', metavar='CONFIG_FILE', \
-                    help='Configuration file name in ./config, defaults otherwise to "configparams.py"', \
-                    default='', required=False)
-parser.add_argument('-e', '--atac-peaks', dest='atac_peaks_filename', \
-                    help='Full path to the ATAC-Seq broadPeak file.', \
-                    default='', required=False)
-parser.add_argument('-m', '--motif-path', dest='tf_motif_path', \
-                    help='Path to the location of the motif sites for the desired reference genome (i.e., "/usr/local/motifs/human/hg19/*").', \
-                    default='', required=False)
-parser.add_argument('-t', '--threads', dest='mp_threads', \
-                    help='Number of CPUs to use for multiprocessing of MD-score calculations. Depends on your hardware architecture.', \
-                    default='1', required=False)
-args = parser.parse_args()
-
-
-HISTOGRAM_BINS = 100
-H = 1500          # in bps, the MD-score parameter (large window)
-h = 150           # in bps, the MD-score parameter (small window)
-REPRESSOR_MARGIN = 500      # in bps, distance from the large window boundaries
-#evaluation_radius = 750   # in bps
-ATAC_WIDTH_THRESHOLD = 5000   # in bp
-
-# Smart way to make this organism-specific?
-CHROMOSOMES = ['chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr6', 'chr7', 'chr8', \
-                'chr9', 'chr10', 'chr11', 'chr12', 'chr13', 'chr14', 'chr15', \
-                'chr16', 'chr17', 'chr18', 'chr19', 'chr20', 'chr21', 'chr22', \
-                'chrX', 'chrY']
-
-CFG = None
-if args.config_filename:
-    CFG = imp.load_source('config.%s' % args.config_filename.split('.')[0], args.config_filename)
-
 
 # returns ith column from the given matrix
 def get_column(matrix,i):
@@ -74,18 +39,17 @@ def is_in_window(motif_interval, atac_median, window_size):
 
 
 # this will be ran in parallel
-def find_motifs_in_chrom(current_chrom, tf_motif_filename):
-    atac_peaks_filename = ''
-    if args.atac_peaks_filename:
-        atac_peaks_filename = args.atac_peaks_filename
-    elif CFG:
-        atac_peaks_filename = CFG.atac_peaks_filename
-    assert atac_peaks_filename != '', "Must provide an ATAC-Seq peaks file, either in the arguments or in a configuration file. Call with \"--help\" for more info."
-    atac_df = pd.read_csv(atac_peaks_filename, header=None, sep="\t", usecols=[0, 1, 2], \
-                          names=['chrom', 'start', 'end'], na_filter=False, dtype={'chrom':'str', 'start':'str', 'end':'str'})
+def find_motifs_in_chrom(current_chrom, files):
+    tf_motif_filename, atac_peaks_filename = files
+    H = 1500          # in bps, the MD-score parameter (large window)
+    h = 150           # in bps, the MD-score parameter (small window)
+    REPRESSOR_MARGIN = 500      # in bps, distance from the large window boundaries
+
+    atac_df = pd.read_csv(atac_peaks_filename, header=None, comment='#', sep="\t", usecols=[0, 1, 2], \
+                          names=['chrom', 'start', 'end'], na_filter=False, dtype={'chrom':'str', 'start':'int', 'end':'int'})
     atac_iter = atac_df[(atac_df.chrom == current_chrom)].itertuples()
-    motif_df = pd.read_csv(tf_motif_filename, header=None, sep="\t", usecols=[0, 1, 2], \
-                           names=['chrom', 'start', 'end'], na_filter=False, dtype={'chrom':'str', 'start':'str', 'end':'str'})
+    motif_df = pd.read_csv(tf_motif_filename, header=None, comment='#', sep="\t", usecols=[0, 1, 2], \
+                           names=['chrom', 'start', 'end'], na_filter=False, dtype={'chrom':'str', 'start':'int', 'end':'int'})
     if len(motif_df) == 0:
         return None
     motif_iter = motif_df[(motif_df.chrom == current_chrom)].itertuples()
@@ -108,7 +72,7 @@ def find_motifs_in_chrom(current_chrom, tf_motif_filename):
         motifs_within_region = True
         tf_distance = 0
 
-        atac_median = int(atac_peak.start) + (int(atac_peak.end) - int(atac_peak.start))/2
+        atac_median = atac_peak.start + (atac_peak.end - atac_peak.start)/2
         # check the last motif, too, in case any of them falls within the region of
         # interest of two sequential ATAC-Seq peaks
         if last_motif:
@@ -117,8 +81,8 @@ def find_motifs_in_chrom(current_chrom, tf_motif_filename):
                 putative_activator_count += 1
             if is_in_window(last_motif, atac_median, H):
                 g_H = g_H + 1
-                tf_median = int(last_motif.start) + \
-                            (int(last_motif.end) - int(last_motif.start))/2
+                tf_median = last_motif.start + \
+                            (last_motif.end - last_motif.start)/2
                 tf_distance = atac_median - tf_median
                 if not is_in_window(last_motif, atac_median, H - REPRESSOR_MARGIN):
                     putative_repressor_count += 1
@@ -132,14 +96,14 @@ def find_motifs_in_chrom(current_chrom, tf_motif_filename):
             # account for those within the larger window (H)
             if is_in_window(motif_region, atac_median, H):
                 g_H = g_H + 1
-                tf_median = int(motif_region.start) + (int(motif_region.end) - \
-                            int(motif_region.start))/2
+                tf_median = motif_region.start + (motif_region.end - \
+                            motif_region.start)/2
                 tf_distances.append(atac_median - tf_median)
                 #motif_seqs.append(motif_region.sequence)
                 if not is_in_window(motif_region, atac_median, H - REPRESSOR_MARGIN):
                     putative_repressor_count += 1
 
-            if int(motif_region.start) <= (atac_median + H):
+            if motif_region.start <= (atac_median + H):
                 try:
                     motif_region = next(motif_iter)   # this gets the next motif in the list
                 except StopIteration:
@@ -160,11 +124,17 @@ def find_motifs_in_chrom(current_chrom, tf_motif_filename):
     return [tf_distances, motif_seqs, g_h, g_H, total_motif_sites]
 
 
-def get_md_score(tf_motif_filename):
-    pool = multiprocessing.Pool(int(args.mp_threads))
+def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename):
+    HISTOGRAM_BINS = 100
+    # Smart way to make this organism-specific?
+    CHROMOSOMES = ['chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr6', 'chr7', 'chr8', \
+                    'chr9', 'chr10', 'chr11', 'chr12', 'chr13', 'chr14', 'chr15', \
+                    'chr16', 'chr17', 'chr18', 'chr19', 'chr20', 'chr21', 'chr22', \
+                    'chrX', 'chrY']
+    pool = multiprocessing.Pool(mp_threads)
     results = pool.map(partial( find_motifs_in_chrom, \
-                                tf_motif_filename=tf_motif_filename), \
-                                CHROMOSOMES)
+                                files=[tf_motif_filename, atac_peaks_filename]), \
+                       CHROMOSOMES)
     pool.close()
     pool.join()
 
@@ -195,15 +165,26 @@ def get_md_score(tf_motif_filename):
         return None
 
 
-if __name__=='__main__':
+def main():
+    parser = argparse.ArgumentParser(description='This script analyzes ATAC-Seq and GRO-Seq data and produces various plots for further data analysis.', epilog='IMPORTANT: Please ensure that ALL bed files used with this script are sorted by the same criteria.')
+    parser.add_argument('-x', '--prefix', dest='output_prefix', metavar='CELL_TYPE', \
+                        help='Cell type (k562, imr90, etc), or any other appropriate output file prefix', required=True)
+    parser.add_argument('-e', '--atac-peaks', dest='atac_peaks_filename', \
+                        help='Full path to the ATAC-Seq broadPeak file.', \
+                        default='', required=True)
+    parser.add_argument('-m', '--motif-path', dest='tf_motif_path', \
+                        help='Path to the location of the motif sites for the desired reference genome (i.e., "/usr/local/motifs/human/hg19/*").', \
+                        default='', required=True)
+    parser.add_argument('-t', '--threads', dest='mp_threads', \
+                        help='Number of CPUs to use for multiprocessing of MD-score calculations. Depends on your hardware architecture.', \
+                        default='1', required=False)
+    args = parser.parse_args()
+
+    #evaluation_radius = 750   # in bps
+    ATAC_WIDTH_THRESHOLD = 5000   # in bp
+
     print('Starting --- ' + str(datetime.datetime.now()))
-    atac_peaks_filename = ''
-    if args.atac_peaks_filename:
-        atac_peaks_filename = args.atac_peaks_filename
-    elif CFG:
-        atac_peaks_filename = CFG.atac_peaks_filename
-    assert atac_peaks_filename != '', "Must provide an ATAC-Seq peaks file, either in the arguments or in a configuration file. Call with \"--help\" for more info."
-    atac_peaks_file = open(atac_peaks_filename)
+    atac_peaks_file = open(args.atac_peaks_filename)
     atac_csv_reader = csv.reader(atac_peaks_file, delimiter='\t')
     atac_line = next(atac_csv_reader)
     atac_peak_count = 0
@@ -237,19 +218,14 @@ if __name__=='__main__':
 
     motif_stats = []
     sorted_motif_stats = []
-    tf_motif_path = ''
-    if args.tf_motif_path:
-        tf_motif_path = args.tf_motif_path + '/*'
-    elif CFG:
-        tf_motif_path = CFG.tf_motif_path + '/*'
-    assert tf_motif_path != '', "Must provide a path to the files containing motif sites for this genome, either in the arguments or in a configuration file. Call with \"--help\" for more info."
+    tf_motif_path = args.tf_motif_path + '/*'
     motif_filenames = glob.glob(tf_motif_path)
     motif_count = len(motif_filenames)
     print("Processing motif files in %s" % tf_motif_path)
     for filename in motif_filenames:
         filename_no_path = filename.split('/')[-1]
         if os.path.getsize(filename) > 0:
-            [md_score, small_window, large_window, motif_site_count, heat] = get_md_score(filename)
+            [md_score, small_window, large_window, motif_site_count, heat] = get_md_score(filename, int(args.mp_threads), args.atac_peaks_filename)
             print('The MD-score for ATAC reads vs %s is %.6f' % (filename_no_path, md_score))
             motif_stats.append({ 'motif_file': filename_no_path, \
                                  'md_score': md_score, \
@@ -270,3 +246,7 @@ if __name__=='__main__':
 
     print('All done --- %s' % str(datetime.datetime.now()))
     sys.exit(0)
+
+
+if __name__=='__main__':
+    main()

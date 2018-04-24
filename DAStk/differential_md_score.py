@@ -20,24 +20,23 @@ from argparse import RawTextHelpFormatter
 # $ python differential_md_score.py -x brg1fl -1 control -2 tamoxifen -p 0.000000000001
 #
 
-parser = argparse.ArgumentParser(description='This script produces an MA plot of TFs from ATAC-Seq data, for DMSO vs. treatment conditions.', \
-    epilog="IMPORTANT: Please ensure that ALL files used with this script are sorted by the same criteria.\n\nExample:\nFor your files:\n     * mcf7_DMSO_md_scores.txt\n     * mcf7_Nutlin_md_scores.txt\n... you can use the following arguments to generate an MA plot with barcodes at a p-value cutoff of 1e-4:\n\n$ python differential_md_score.py -x mcf7 -1 DMSO -2 Nutlin -p 0.0001 -b\n\n", formatter_class=RawTextHelpFormatter)
-parser.add_argument('-x', '--prefix', dest='output_prefix', metavar='CELL_TYPE', \
-                    help='Cell type (k562, imr90, etc), primarily used for the output file prefix', required=True)
-parser.add_argument('-p', '--p-value', dest='p_value', metavar='P_VALUE', \
-                    help='p-value cutoff to define which motifs to label in the MA plot. Defaults to 0.00001.', default=0.00001, required=False)
-parser.add_argument('-1', '--assay-1', dest='assay_1', metavar='ASSAY_1', \
-                    help='Conditions label for the reference/control assay of the differential pair (e.g. "DMSO", "control", "wildtype"). Used to find the proper file with the calculated MD-scores and on the plot labels.', required=True)
-parser.add_argument('-2', '--assay-2', dest='assay_2', metavar='ASSAY_2', \
-                    help='Conditions label for the perturbation assay of the differential pair (e.g., "doxycyclin", "p53_knockout"). Used to find the proper file with the calculated MD-scores and on the plot labels.', required=True)
-parser.add_argument('-b', '--barcodes', dest='gen_barcode', action='store_true', \
-                    help='Generate a barcode plot for each significant motif', default=False, required=False)
-args = parser.parse_args()
+def main():
+    parser = argparse.ArgumentParser(description='This script produces an MA plot of TFs from ATAC-Seq data, for DMSO vs. treatment conditions.', \
+        epilog="IMPORTANT: Please ensure that ALL files used with this script are sorted by the same criteria.\n\nExample:\nFor your files:\n     * mcf7_DMSO_md_scores.txt\n     * mcf7_Nutlin_md_scores.txt\n... you can use the following arguments to generate an MA plot with barcodes at a p-value cutoff of 1e-4:\n\n$ python differential_md_score.py -x mcf7 -1 DMSO -2 Nutlin -p 0.0001 -b\n\n", formatter_class=RawTextHelpFormatter)
+    parser.add_argument('-x', '--prefix', dest='output_prefix', metavar='CELL_TYPE', \
+                        help='Cell type (k562, imr90, etc), or any other appropriate output file prefix', required=True)
+    parser.add_argument('-p', '--p-value', dest='p_value', metavar='P_VALUE', \
+                        help='p-value cutoff to define which motifs to label in the MA plot. Defaults to 0.00001.', default=0.00001, required=False)
+    parser.add_argument('-1', '--assay-1', dest='assay_1', metavar='ASSAY_1', \
+                        help='Conditions label for the reference/control assay of the differential pair (e.g. "DMSO", "control", "wildtype"). Used to find the proper file with the calculated MD-scores and on the plot labels.', required=True)
+    parser.add_argument('-2', '--assay-2', dest='assay_2', metavar='ASSAY_2', \
+                        help='Conditions label for the perturbation assay of the differential pair (e.g., "doxycyclin", "p53_knockout"). Used to find the proper file with the calculated MD-scores and on the plot labels.', required=True)
+    parser.add_argument('-b', '--barcodes', dest='gen_barcode', action='store_true', \
+                        help='Generate a barcode plot for each significant motif', default=False, required=False)
+    args = parser.parse_args()
 
-HISTOGRAM_BINS = 100
-P_VALUE_CUTOFF = float(args.p_value)
-
-if __name__=='__main__':
+    HISTOGRAM_BINS = 100
+    P_VALUE_CUTOFF = float(args.p_value)
 
     print('Starting --- ' + str(datetime.datetime.now()))
 
@@ -189,3 +188,7 @@ if __name__=='__main__':
 
     print('All done --- ' + str(datetime.datetime.now()))
     sys.exit(0)
+
+
+if __name__=='__main__':
+    main()
