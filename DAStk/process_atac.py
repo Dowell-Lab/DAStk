@@ -203,6 +203,9 @@ def main():
             atac_line = next(atac_csv_reader)
         except StopIteration:
             break
+        except IndexError:
+            print("\nThere was an error with the ATAC-seq peaks file.\nPlease verify it conforms with a BedGraph-like format\n(tab-separated columns, any other lines commented with a leading '#')")
+            sys.exit(1)
     atac_peak_mean = np.mean(all_widths)
     atac_peak_std = np.std(all_widths)
     evaluation_radius = (int(atac_peak_mean) + 2 * int(atac_peak_std)) / 2
