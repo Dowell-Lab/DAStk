@@ -93,8 +93,13 @@ Feel free to use the motif files provided, [human_motifs.tar.gz](http://dowell.c
 
 -----
 
+### Citation
+
 Please cite DAStk if you have used it in your research!  
-For any questions or bug reports, please use the Issue Tracker.
+*Tripodi, I.J.; Allen, M.A.; Dowell, R.D.	Detecting Differential Transcription Factor Activity from ATAC-Seq Data. Molecules 2018, 23, 1136.*  
+
+
+For any questions or bug reports, please use the Issue Tracker or email us:  
 
 
 *Ignacio Tripodi (ignacio.tripodi at colorado.edu)*  
