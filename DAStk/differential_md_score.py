@@ -74,6 +74,10 @@ def main():
     colors = []
     sizes = []
     for label in sorted(labels):
+        if control_mds[label] == 0 and perturbation_mds[label] == 0:
+            # Skip this motif, it will only skew the graph and won't provide any useful info
+            continue
+
         control.append(float(control_mds[label]))
         perturbation.append(float(perturbation_mds[label]))
         nr_peaks.append(np.log2(float(control_nr_peaks[label]) + float(perturbation_nr_peaks[label])))
@@ -84,11 +88,6 @@ def main():
         n2 = float(perturbation_nr_peaks[label])
         x1 = p1 * n1
         x2 = p2 * n2
-        if n1 == 0:
-            print('%s had an MD-score of 0 in %s' % (label, args.assay_1))
-            n1 = 1
-        if n2 == 0:
-            x2 = p2 * n2
         if n1 == 0:
             print('%s had an MD-score of 0 in %s' % (label, args.assay_1))
             n1 = 1
