@@ -1,5 +1,5 @@
-import process_atac as p
-import differential_md_score as d
+import DAStk.process_atac as p
+import DAStk.differential_md_score as d
 
 def process_atac():
     p.main()
