@@ -227,7 +227,8 @@ def main():
     print("Processing motif files in %s" % tf_motif_path)
     for filename in motif_filenames:
         filename_no_path = filename.split('/')[-1]
-        if os.path.getsize(filename) > 0:
+        if os.path.getsize(filename) > 0 and \
+           os.path.basename(filename).endswith(tuple(['.bed', '.BedGraph', '.txt'])):
             [md_score, small_window, large_window, motif_site_count, heat] = get_md_score(filename, int(args.mp_threads), args.atac_peaks_filename)
             print('The MD-score for ATAC reads vs %s is %.6f' % (filename_no_path, md_score))
             motif_stats.append({ 'motif_file': filename_no_path, \

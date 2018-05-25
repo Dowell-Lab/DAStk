@@ -5,7 +5,7 @@ The Differential [ATAC-seq](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4374986
 You will need the following inputs:
 
 - A pair of files listing peaks of ATAC-seq signal in two biological conditions (e.g. DMSO and drug-treated) in any BedGraph-compatible format (tab-delimited)
-- A set of files listing the putative binding sites across the reference genome of choice, one file per transcription factor motif, also in any BedGraph-like format. These are normally generated from position weight matrices (PWMs) available at TF model databases like [HOCOMOCO](http://hocomoco11.autosome.ru).
+- A set of files listing the putative binding sites across the reference genome of choice, one file per transcription factor motif, also in any BedGraph-like format. These are normally generated from position weight matrices (PWMs) available at TF model databases like [HOCOMOCO](http://hocomoco11.autosome.ru). These files are expected to have a `.bed`, `.BedGraph` or `.txt` extension.
 
 **IMPORTANT: All files mentioned above (ATAC-seq peaks and computed motif sites) MUST be sorted by the same criteria. Different bioinformatics tools use different lexical sorting criteria (e.g. chr10 after chr1, or chr2 after chr1) so please ensure the sorting criteria is uniform.**
 
