@@ -14,7 +14,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='DAStk',
-    version='0.1.4',
+    version='0.1.5',
     description='Differential ATAC-seq toolkit',
     long_description=long_description,
     license='BSD',
