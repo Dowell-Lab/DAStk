@@ -166,7 +166,7 @@ def main():
             # Condense the barcode to half the bins for prettier display
             control_bc_data = control_bc_data.astype(int)
             heat_m = np.nan * np.empty(shape=(int(HISTOGRAM_BINS/4), HISTOGRAM_BINS))
-            for row in range(HISTOGRAM_BINS/4):
+            for row in range(int(HISTOGRAM_BINS/4)):
                 heat_m[row] = control_bc_data
                 ax0.matshow(heat_m, cmap=cm.YlGnBu)
             ax0.axis('off')
@@ -176,7 +176,7 @@ def main():
             perturbation_bc_data = np.array(perturbation_barcode[relevant_tf].split(';'))
             perturbation_bc_data = perturbation_bc_data.astype(int)
             heat_m = np.nan * np.empty(shape=(int(HISTOGRAM_BINS/4), HISTOGRAM_BINS))
-            for row in range(HISTOGRAM_BINS/4):
+            for row in range(int(HISTOGRAM_BINS/4)):
                 heat_m[row] = perturbation_bc_data
                 ax1.matshow(heat_m, cmap=cm.YlGnBu)
             ax1.axis('off')
