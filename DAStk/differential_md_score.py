@@ -17,7 +17,7 @@ from argparse import RawTextHelpFormatter
 
 # Usage:
 #
-# $ python differential_md_score.py -x brg1fl -1 control -2 tamoxifen -p 0.000000000001
+# $ python differential_md_score.py -1 control -2 tamoxifen -p 0.000000000001 -o /outdir
 #
 
 def main():
@@ -127,6 +127,12 @@ def main():
     ax.scatter(nr_peaks, fold_change, s=sizes, edgecolor='white', linewidth=0.5, color=colors)
     texts = []
     for x, y, text, p_value in zip(nr_peaks, fold_change, np_labels, p_values):
+        # Write out all MD scores
+        differential_md_scores = open("%s/%s_vs_%s_differential_md_scores.txt" % \
+                                      (args.output_dir, args.assay_1, args.assay_2), 'w')
+        differential_md_scores.write('%s\t%.3f\t%.2E' % (text, y, p_value))
+        differential_md_scores.close()
+        
         if p_value < P_VALUE_CUTOFF:
         #if (y > 0.02 or y < -0.02) and x > 12:
             print('%s (%.3f, p-value = %.2E)' % (text, y, p_value))

@@ -76,7 +76,7 @@ The above generates a file called `ROOTNAME_md_scores.txt`. Finally:
 
     $ differential_md_score --assay-1 DMSO --assay-2 Treatment --p-value 0.0000001 -b --output /path/to/output/directory
 
-The above generates an MA plot that labels the most significant TF activity changes, at a p-value cutoff of 1e-7. Note that the condition names (DMSO and Treatment) were the same ones used earlier as the second half of the prefix. The plots look like the example below:
+The above generates a tab-delimited file with all differential MD scores for each motif (and their p-values), an MA plot that labels the most significant TF activity changes, at a p-value cutoff of 1e-7. Note that the condition names (DMSO and Treatment) were the same ones used earlier as the second half of the prefix. The plots look like the example below:
 
 ![Sample MA plot](./doc_files/sample_MA_plot.png)
 
