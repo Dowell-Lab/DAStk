@@ -74,7 +74,7 @@ We would then generate the same file, for the other condition we are comparing a
 
 The above generates a file called `ROOTNAME_md_scores.txt`. Finally:
 
-    $ differential_md_score --prefix mcf7 --assay-1 DMSO --assay-2 Treatment --p-value 0.0000001 -b
+    $ differential_md_score --assay-1 DMSO --assay-2 Treatment --p-value 0.0000001 -b --output /path/to/output/directory
 
 The above generates an MA plot that labels the most significant TF activity changes, at a p-value cutoff of 1e-7. Note that the condition names (DMSO and Treatment) were the same ones used earlier as the second half of the prefix. The plots look like the example below:
 
