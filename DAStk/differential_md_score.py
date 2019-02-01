@@ -126,13 +126,13 @@ def main():
     fig, ax = plt.subplots()
     ax.scatter(nr_peaks, fold_change, s=sizes, edgecolor='white', linewidth=0.5, color=colors)
     texts = []
+    differential_md_scores = open("%s/%s_vs_%s_differential_md_scores.txt" % \
+                                      (args.output_dir, args.assay_1, args.assay_2), 'w')
     for x, y, text, p_value in zip(nr_peaks, fold_change, np_labels, p_values):
         # Write out all MD scores
-        differential_md_scores = open("%s/%s_vs_%s_differential_md_scores.txt" % \
-                                      (args.output_dir, args.assay_1, args.assay_2), 'w')
-        differential_md_scores.write('%s\t%.3f\t%.2E' % (text, y, p_value))
-        differential_md_scores.close()
-        
+        differential_md_scores.write('%s\t%.3f\t%.2E\n' % (text, y, p_value))
+    differential_md_scores.close()
+    for x, y, text, p_value in zip(nr_peaks, fold_change, np_labels, p_values):        
         if p_value < P_VALUE_CUTOFF:
         #if (y > 0.02 or y < -0.02) and x > 12:
             print('%s (%.3f, p-value = %.2E)' % (text, y, p_value))
