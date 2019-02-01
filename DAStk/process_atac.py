@@ -179,7 +179,7 @@ def main():
                         help='Number of CPUs to use for multiprocessing of MD-score calculations. Depends on your hardware architecture.', \
                         default='1', required=False)
     parser.add_argument('-o', '--output', dest='output_dir', \
-                        help='Path to where scors file will be saved. Save output will be your peak file rootname + _md_scores.txt.', \
+                        help='Path to where scores file will be saved. Save output will be your peak file rootname + _md_scores.txt.', \
                         default='', required=True)
     args = parser.parse_args()
 
