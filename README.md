@@ -39,7 +39,7 @@ These scripts feature comprehensive help when called with the `--help` argument.
 If you satisfy all the Python library requirements, you can simply clone this repository and run `tf_activity_changes` with the following syntax:
 
     $ ./tf_activity_changes PREFIX CONDITION_1_NAME CONDITION_2_NAME CONDITION_1_ATAC_PEAKS_FILE \
-      CONDITION_2_ATAC_PEAKS_FILE PATH_TO_MOTIF_FILES [NUMBER_OF_THREADS]
+      CONDITION_2_ATAC_PEAKS_FILE PATH_TO_MOTIF_FILES PATH_TO_OUTPUT_DIRECTORY [NUMBER_OF_THREADS]
 
 ... then use `differential_md_score` (instructions below, or via `--help`) to explore which TFs are changing the most in activity for different p-value cutoffs.
 
@@ -52,24 +52,27 @@ Unpack the motif files (see below for how to create your own, instead):
 
 Calculate the MD-scores for the first biological condition:
 
-    $ process_atac --prefix 'mcf7_DMSO' --threads 8 --atac-peaks /path/to/DMSO/ATAC/peaks/file \
-      --motif-path /path/to/directory/containing/motif/files
+    $ process_atac --threads 8 --atac-peaks /path/to/DMSO/ATAC/peaks/file \
+      --motif-path /path/to/directory/containing/motif/files \
+      --output /path/to/output/directory
 
-The above command generates a file called `mcf7_DMSO_md_scores.txt`. The required prefix is a good way to keep track of what these new files represent. It's expected to be some sort of assay identifier and the biological condition, separated by a `_`; it's generally a good idea to use the cell type (or sample number) and a brief condition description (e.g. `k562_DMSO` or `SRR1234123_Metronidazole`). Alternatively, this could have been executed as:
+The above command generates a file called `ROOTNAME_md_scores.txt` it's generally a good idea to use the cell type (or sample number) and a brief condition description (e.g. `k562_DMSO` or `SRR1234123_Metronidazole`). Alternatively, this could have been executed as:
 
-    $ process_atac --prefix 'mcf7_DMSO' --threads 8 --config /path/to/config/file.py
+    $ process_atac --threads 8 --config /path/to/config/file.py
 
 ... where the contents of this configuration file `file.py` would look like:
 
     atac_peaks_filename = '/path/to/DMSO/ATAC/peaks/file'
     tf_motif_path = '/path/to/directory/containing/motif/files'
+    output_dir = '/path/to/output/directory'
 
 We would then generate the same file, for the other condition we are comparing against:
 
-    $ process_atac --prefix 'mcf7_Treatment' --threads 8 --atac-peaks /path/to/treatment/ATAC/peaks/file \
-      --motif-path /path/to/directory/containing/motif/files
+    $ process_atac --threads 8 --atac-peaks /path/to/treatment/ATAC/peaks/file \
+      --motif-path /path/to/directory/containing/motif/files \
+      --output /path/to/output/directory
 
-The above generates a file called `mcf7_Treatment_md_scores.txt`. Finally:
+The above generates a file called `ROOTNAME_md_scores.txt`. Finally:
 
     $ differential_md_score --prefix mcf7 --assay-1 DMSO --assay-2 Treatment --p-value 0.0000001 -b
 
