@@ -13,7 +13,8 @@ COND2=$3
 ATACPEAKS1=$4
 ATACPEAKS2=$5
 MOTIFS=$6
-THREADS=$7  # optional
+OUT=$7
+THREADS=$8  # optional
 
 PREFIX1=`echo "${PREFIX}_${COND1}"`
 PREFIX2=`echo "${PREFIX}_${COND2}"`
@@ -22,6 +23,6 @@ if [[ -z $7 ]]; then
   THREADS=1
 fi
 
-python process_atac.py --prefix $PREFIX1 --threads $THREADS --atac-peaks $ATACPEAKS1 --motif-path $MOTIFS
-python process_atac.py --prefix $PREFIX2 --threads $THREADS --atac-peaks $ATACPEAKS2 --motif-path $MOTIFS
+python process_atac.py --threads $THREADS --atac-peaks $ATACPEAKS1 --motif-path $MOTIFS --output $OUT
+python process_atac.py --threads $THREADS --atac-peaks $ATACPEAKS2 --motif-path $MOTIFS --output $OUT
 python differential_md_score.py --prefix $PREFIX -1 $COND1 -2 $COND2

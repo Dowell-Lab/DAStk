@@ -167,8 +167,8 @@ def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename):
 
 def main():
     parser = argparse.ArgumentParser(description='This script analyzes ATAC-Seq and GRO-Seq data and produces various plots for further data analysis.', epilog='IMPORTANT: Please ensure that ALL bed files used with this script are sorted by the same criteria.')
-    parser.add_argument('-x', '--prefix', dest='output_prefix', metavar='CELL_TYPE', \
-                        help='Cell type (k562, imr90, etc), or any other appropriate output file prefix', required=True)
+#    parser.add_argument('-x', '--prefix', dest='output_prefix', metavar='CELL_TYPE', \
+#                        help='Cell type (k562, imr90, etc), or any other appropriate output file prefix', required=True)
     parser.add_argument('-e', '--atac-peaks', dest='atac_peaks_filename', \
                         help='Full path to the ATAC-Seq broadPeak file.', \
                         default='', required=True)
@@ -178,6 +178,9 @@ def main():
     parser.add_argument('-t', '--threads', dest='mp_threads', \
                         help='Number of CPUs to use for multiprocessing of MD-score calculations. Depends on your hardware architecture.', \
                         default='1', required=False)
+    parser.add_argument('-o', '--output', dest='output_dir', \
+                        help='Path to where scors file will be saved. Save output will be your peak file rootname + _md_scores.txt.', \
+                        default='', required=True)
     args = parser.parse_args()
 
     #evaluation_radius = 750   # in bps
@@ -185,6 +188,7 @@ def main():
 
     print('Starting --- ' + str(datetime.datetime.now()))
     atac_peaks_file = open(args.atac_peaks_filename)
+    output_prefix = os.path.splitext(os.path.basename(args.atac_peaks_filename))[0]
     atac_csv_reader = csv.reader(atac_peaks_file, delimiter='\t')
     atac_line = next(atac_csv_reader)
     atac_peak_count = 0
@@ -241,7 +245,7 @@ def main():
     # sort the stats dictionary by MD-score, descending order
     sorted_motif_stats = sorted(motif_stats, key=itemgetter('md_score'), reverse=True)
 
-    md_score_fp = open("%s_md_scores.txt" % args.output_prefix, 'w')
+    md_score_fp = open("%s/%s_md_scores.txt" % (args.output_dir, output_prefix), 'w')
     for stat in sorted_motif_stats:
         md_score_fp.write("%s,%s,%s,%s,%s,%s\n" % \
                           (stat['motif_file'], stat['md_score'], stat['small_window'], \
