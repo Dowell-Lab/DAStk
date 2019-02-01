@@ -50,7 +50,7 @@ def main():
         if '.bed' in line_chunks[0]:
             control_mds[line_chunks[0][:-4]] = float(line_chunks[1])
             labels.append(line_chunks[0][:-4])
-            control_nr_peaks[line_chunks[0][:-4]] = int(line_chunks[3])
+            control_nr_peaks[line_chunks[0][:-4]] = float(line_chunks[3])
             control_barcode[line_chunks[0][:-4]] = line_chunks[5]
     perturbation_mds = {}
     perturbation_nr_peaks = {}
