@@ -2,7 +2,7 @@
 
 if [[ $# < 6 ]]; then
   echo "\nUsage:\n";
-  echo "$0 PREFIX CONDITION_1 CONDITION_2 ATAC_PEAKS_FILE_1 ATAC_PEAKS_FILE_2 MOTIFS_PATH [NUMBER_OF_PROCESSES]";
+  echo "$0 CONDITION_1 CONDITION_2 ATAC_PEAKS_FILE_1 ATAC_PEAKS_FILE_2 MOTIFS_PATH OUT [NUMBER_OF_PROCESSES]";
   echo "\n(Only provide the number of processes if in a multiprocessing-able environment)";
   exit 1;
 fi
