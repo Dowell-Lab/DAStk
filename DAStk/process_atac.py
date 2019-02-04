@@ -153,14 +153,19 @@ def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename):
         str_heatmap = np.char.mod('%d', heatmap)
         # TODO: Use the motif sequences to generate a logo for each motif, based
         #       only on the overlapping ATAC-Seq peaks
-        if overall_g_H > 0:
-            return [float(overall_g_h)/overall_g_H, \
-                    overall_g_h, \
-                    overall_g_H, \
-                    overall_motif_sites, \
+        if overall_g_H >= 0:
+            return [float(overall_g_h + .1)/(overall_g_H + 1), \
+                    (overall_g_h + .1), \
+                    (overall_g_H + 1), \
+                    (overall_motif_sites + 1), \
                     ';'.join(str_heatmap)]
-        else:
-            return [0, 0, 0, overall_motif_sites, np.zeros(HISTOGRAM_BINS)]
+#        else:
+#            return [float(overall_g_h + .1)/(overall_g_H + 1), \
+#                    (overall_g_h + .1), \
+#                    (overall_g_H + 1), \
+#                    (overall_motif_sites + 1), \
+#                    ';'.join(str_heatmap)]            
+#            return [0, 0, 0, overall_motif_sites, np.zeros(HISTOGRAM_BINS)]
     else:
         return None
 

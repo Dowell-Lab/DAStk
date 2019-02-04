@@ -126,12 +126,13 @@ def main():
     fig, ax = plt.subplots()
     ax.scatter(nr_peaks, fold_change, s=sizes, edgecolor='white', linewidth=0.5, color=colors)
     texts = []
+    # Write out all MD scores
     differential_md_scores = open("%s/%s_vs_%s_differential_md_scores.txt" % \
-                                      (args.output_dir, args.assay_1, args.assay_2), 'w')
-    for x, y, text, p_value in zip(nr_peaks, fold_change, np_labels, p_values):
-        # Write out all MD scores
+                                 (args.output_dir, args.assay_1, args.assay_2), 'w')
+    for y, text, p_value in zip(fold_change, np_labels, p_values):
         differential_md_scores.write('%s\t%.3f\t%.2E\n' % (text, y, p_value))
     differential_md_scores.close()
+    
     for x, y, text, p_value in zip(nr_peaks, fold_change, np_labels, p_values):        
         if p_value < P_VALUE_CUTOFF:
         #if (y > 0.02 or y < -0.02) and x > 12:
@@ -183,7 +184,7 @@ def main():
             ax0.text(HISTOGRAM_BINS/2, -10, args.assay_1, ha='center', size=18, zorder=0)
 
             perturbation_bc_data = np.array(perturbation_barcode[relevant_tf].split(';'))
-            perturbation_bc_data = perturbation_bc_data.astype(int)
+            perturbation_bc_data = perturbation_bc_data.astype(float)
             heat_m = np.nan * np.empty(shape=(int(HISTOGRAM_BINS/4), HISTOGRAM_BINS))
             for row in range(int(HISTOGRAM_BINS/4)):
                 heat_m[row] = perturbation_bc_data
