@@ -28,9 +28,9 @@ def main():
     parser.add_argument('-p', '--p-value', dest='p_value', metavar='P_VALUE', \
                         help='p-value cutoff to define which motifs to label in the MA plot. Defaults to 0.00001.', default=0.00001, required=False)
     parser.add_argument('-1', '--assay-1', dest='assay_1', metavar='ASSAY_1', \
-                        help='Conditions label for the reference/control assay of the differential pair (e.g. "DMSO", "control", "wildtype"). This will be the rootname before _md_scores.txt generated from process_atac. Used to find the proper file with the calculated MD-scores and on the plot labels.', required=True)
+                        help='Path to MD score file ending in _md_scores.txt generated from process_atac. Used to find the proper file with the calculated MD-scores and on the plot labels.', required=True)
     parser.add_argument('-2', '--assay-2', dest='assay_2', metavar='ASSAY_2', \
-                        help='Conditions label for the perturbation assay of the differential pair (e.g., "doxycyclin", "p53_knockout"). This will be the rootname before _md_scores.txt generated from process_atac. Used to find the proper file with the calculated MD-scores and on the plot labels.', required=True)
+                        help='Path to MD score file ending in _md_scores.txt generated from process_atac. Used to find the proper file with the calculated MD-scores and on the plot labels.', required=True)
     parser.add_argument('-b', '--barcodes', dest='gen_barcode', action='store_true', \
                         help='Generate a barcode plot for each significant motif', default=False, required=False)
     parser.add_argument('-o', '--output', dest='output_dir', \
@@ -40,14 +40,16 @@ def main():
 
     HISTOGRAM_BINS = 100
     P_VALUE_CUTOFF = float(args.p_value)
-
+    assay_1_prefix = os.path.splitext(os.path.basename(args.assay_1))[0]
+    assay_2_prefix = os.path.splitext(os.path.basename(args.assay_2))[0]
+    
     print('Starting --- ' + str(datetime.datetime.now()))
-
+    
     control_mds = {}
     control_nr_peaks = {}
     control_barcode = {}
     labels = []
-    control_fd = open('%s_md_scores.txt' % args.assay_1)
+    control_fd = open('%s' % args.assay_2)
     for line in control_fd:
         line_chunks = line.split(',')
         if '.bed' in line_chunks[0]:
@@ -58,7 +60,7 @@ def main():
     perturbation_mds = {}
     perturbation_nr_peaks = {}
     perturbation_barcode = {}
-    perturbation_fd = open('%s_md_scores.txt' % args.assay_2)
+    perturbation_fd = open('%s' % args.assay_1)
     for line in perturbation_fd:
         line_chunks = line.split(',')
         if '.bed' in line_chunks[0]:
