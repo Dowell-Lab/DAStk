@@ -5,6 +5,7 @@ import argparse
 import datetime
 import numpy as np
 import sys
+import os
 import matplotlib as mpl
 # to prevent display-related issues
 mpl.use('Agg')
