@@ -14,6 +14,8 @@ from matplotlib import cm
 from adjustText import adjust_text
 from scipy.stats import norm
 from argparse import RawTextHelpFormatter
+from sklearn.utils import resample
+from operator import itemgetter
 
 # Usage:
 #
@@ -40,9 +42,9 @@ def main():
 
     HISTOGRAM_BINS = 100
     P_VALUE_CUTOFF = float(args.p_value)
-
+    
     print('Starting --- ' + str(datetime.datetime.now()))
-
+    
     control_mds = {}
     control_nr_peaks = {}
     control_barcode = {}
@@ -66,9 +68,9 @@ def main():
             perturbation_mds[line_chunks[0][:-4]] = float(line_chunks[1])
             perturbation_nr_peaks[line_chunks[0][:-4]] = int(line_chunks[3])
             perturbation_barcode[line_chunks[0][:-4]] = line_chunks[5]
-
-    print('Done gathering data, ready to plot --- ' + str(datetime.datetime.now()))
-
+            
+            
+    differential_stats = []        
     control = []
     perturbation = []
     nr_peaks = []
@@ -80,7 +82,7 @@ def main():
         if control_mds[label] == 0 and perturbation_mds[label] == 0:
             # Skip this motif, it will only skew the graph and won't provide any useful info
             continue
-
+    
         control.append(float(control_mds[label]))
         perturbation.append(float(perturbation_mds[label]))
         nr_peaks.append(np.log2(float(control_nr_peaks[label]) + float(perturbation_nr_peaks[label])))
@@ -89,18 +91,67 @@ def main():
         p2 = float(perturbation_mds[label])
         n1 = float(control_nr_peaks[label])
         n2 = float(perturbation_nr_peaks[label])
-        x1 = p1 * n1
-        x2 = p2 * n2
-        if n1 == 0:
-            print('%s had an MD-score of 0 in %s' % (label, args.assay_1))
-            n1 = 1
-        if n2 == 0:
-            print('%s had an MD-score of 0 in %s' % (label, args.assay_2))
-            n2 = 1
-        pooled = (x1 + x2)/(n1 + n2)
-        z_value = (p1 - p2) / np.sqrt(pooled * (1 - pooled) * ((1/n1) + (1/n2)))
+
+        for line in control_barcode:
+            control_bc_array = np.array(control_barcode[line].split(';'))
+            control_bc_boot = control_bc_array.astype(int)
+            
+            # configure bootstrap
+            control_values = control_bc_boot
+            control_n_iterations = int(10 + (0.1 * n1))
+            control_n_size = int(len(control_bc_boot) * 0.50)
+            # run bootstrap
+            stats = list()
+            for i in range(control_n_iterations):
+                # prepare train sets
+                train = resample(control_values, n_samples=control_n_size)
+                variance = np.var(train)
+                stats.append(variance)
+                control_bootstrap = np.sum(stats) / control_n_iterations
+        
+        for line in perturbation_barcode:
+            perturbation_bc_array = np.array(perturbation_barcode[line].split(';'))
+            perturbation_bc_boot = perturbation_bc_array.astype(int)
+            
+            # configure bootstrap
+            perturbation_values = perturbation_bc_boot
+            perturbation_n_iterations = int(10 + (0.1 * n2))
+            perturbation_n_size = int(len(perturbation_bc_boot) * 0.50)
+            # run bootstrap
+            stats = list()
+            for i in range(perturbation_n_iterations):
+                # prepare train sets
+                train = resample(perturbation_values, n_samples=perturbation_n_size)
+                variance = np.var(train)
+                stats.append(variance)
+                perturbation_bootstrap = np.sum(stats) / perturbation_n_iterations
+        
+        x1 = p1 * control_n_iterations
+        x2 = p2 * perturbation_n_iterations
+        pooled = (x1 + x2)/(control_n_iterations + perturbation_n_iterations)
+        #z_value = (p1 - p2) / np.sqrt(pooled * (1 / pooled) * (control_bootstrap/control_n_iterations) + (perturbation_bootstrap/perturbation_n_iterations))
+        z_value = (p1 - p2) / np.sqrt((control_bootstrap/control_n_iterations) + (perturbation_bootstrap/perturbation_n_iterations))
         p_value = norm.sf(abs(z_value))*2
         p_values.append(p_value)
+        
+        print(label, p_value, n1, n2, p1, p2)
+        differential_stats.append({ 'motif_name': label, \
+                                     'md_score': p_value, \
+                                     'control_peaks': int(n1), \
+                                     'perturbation_peaks': int(n2), \
+                                     'control_md_score': round(p1, 3), \
+                                     'perturbation_md_score': round(p2, 3) })
+        
+        sorted_differential_stats = sorted(differential_stats, key=itemgetter('md_score'))
+    
+        differential_stats_file = open("%s/%s_vs_%s_differential_md_scores.txt" % \
+                                 (args.output_dir, args.assay_1, args.assay_2), 'w')
+        for stat in sorted_differential_stats:
+            differential_stats_file.write("%s\t%s\t%s\t%s\t%s\t%s\n" % \
+                              (stat['motif_name'], stat['md_score'], stat['control_peaks'], \
+                               stat['perturbation_peaks'], stat['control_md_score'], stat['perturbation_md_score']))   
+        differential_stats_file.close()  
+        
         if p_value < (P_VALUE_CUTOFF / 10) and float(perturbation_mds[label]) > float(control_mds[label]):
             colors.append('#c64e50')
             sizes.append(70)
@@ -127,11 +178,11 @@ def main():
     ax.scatter(nr_peaks, fold_change, s=sizes, edgecolor='white', linewidth=0.5, color=colors)
     texts = []
     # Write out all MD scores
-    differential_md_scores = open("%s/%s_vs_%s_differential_md_scores.txt" % \
-                                 (args.output_dir, args.assay_1, args.assay_2), 'w')
-    for y, text, p_value in zip(fold_change, np_labels, p_values):
-        differential_md_scores.write('%s\t%.3f\t%.2E\n' % (text, y, p_value))
-    differential_md_scores.close()
+#    differential_md_scores = open("%s/%s_vs_%s_differential_md_scores.txt" % \
+#                                 (args.output_dir, args.assay_1, args.assay_2), 'w')
+#    for y, text, p_value in zip(fold_change, np_labels, p_values):
+#        differential_md_scores.write('%s\t%.3f\t%.2E\n' % (text, y, p_value))
+#    differential_md_scores.close()
     
     for x, y, text, p_value in zip(nr_peaks, fold_change, np_labels, p_values):        
         if p_value < P_VALUE_CUTOFF:

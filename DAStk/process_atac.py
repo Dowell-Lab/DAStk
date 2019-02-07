@@ -127,6 +127,7 @@ def find_motifs_in_chrom(current_chrom, files):
 def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename):
     HISTOGRAM_BINS = 100
     # Smart way to make this organism-specific?
+    # We can pull this list from chromsoome sizes file -- MAG
     CHROMOSOMES = ['chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr6', 'chr7', 'chr8', \
                     'chr9', 'chr10', 'chr11', 'chr12', 'chr13', 'chr14', 'chr15', \
                     'chr16', 'chr17', 'chr18', 'chr19', 'chr20', 'chr21', 'chr22', \
@@ -154,10 +155,10 @@ def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename):
         # TODO: Use the motif sequences to generate a logo for each motif, based
         #       only on the overlapping ATAC-Seq peaks
         if overall_g_H >= 0:
-            return [float(overall_g_h + .1)/(overall_g_H + 1), \
-                    (overall_g_h + .1), \
-                    (overall_g_H + 1), \
-                    (overall_motif_sites + 1), \
+            return [float(overall_g_h + 1)/(overall_g_H + 10), \
+                    (overall_g_h + 1), \
+                    (overall_g_H + 10), \
+                    (overall_motif_sites + 10), \
                     ';'.join(str_heatmap)]
 #        else:
 #            return [float(overall_g_h + .1)/(overall_g_H + 1), \
