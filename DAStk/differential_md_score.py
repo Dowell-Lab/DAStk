@@ -52,7 +52,7 @@ def main():
     control_nr_peaks = {}
     control_barcode = {}
     labels = []
-    control_fd = open('%s.txt' % assay_1_prefix)
+    control_fd = open('%s' % args.assay_2)
     for line in control_fd:
         line_chunks = line.split(',')
         if '.bed' in line_chunks[0]:
@@ -63,7 +63,7 @@ def main():
     perturbation_mds = {}
     perturbation_nr_peaks = {}
     perturbation_barcode = {}
-    perturbation_fd = open('%s.txt' % assay_2_prefix)
+    perturbation_fd = open('%s' % args.assay_1)
     for line in perturbation_fd:
         line_chunks = line.split(',')
         if '.bed' in line_chunks[0]:
