@@ -42,6 +42,8 @@ def main():
 
     HISTOGRAM_BINS = 100
     P_VALUE_CUTOFF = float(args.p_value)
+    assay_1_prefix = os.path.splitext(os.path.basename(args.assay_1))[0]
+    assay_2_prefix = os.path.splitext(os.path.basename(args.assay_2))[0]
     
     print('Starting --- ' + str(datetime.datetime.now()))
     
@@ -49,7 +51,7 @@ def main():
     control_nr_peaks = {}
     control_barcode = {}
     labels = []
-    control_fd = open('%s_md_scores.txt' % args.assay_1)
+    control_fd = open('%s.txt' % assay_1_prefix)
     for line in control_fd:
         line_chunks = line.split(',')
         if '.bed' in line_chunks[0]:
@@ -60,7 +62,7 @@ def main():
     perturbation_mds = {}
     perturbation_nr_peaks = {}
     perturbation_barcode = {}
-    perturbation_fd = open('%s_md_scores.txt' % args.assay_2)
+    perturbation_fd = open('%s.txt' % assay_2_prefix)
     for line in perturbation_fd:
         line_chunks = line.split(',')
         if '.bed' in line_chunks[0]:
@@ -145,7 +147,7 @@ def main():
         sorted_differential_stats = sorted(differential_stats, key=itemgetter('md_score'))
     
         differential_stats_file = open("%s/%s_vs_%s_differential_md_scores.txt" % \
-                                 (args.output_dir, args.assay_1, args.assay_2), 'w')
+                                 (args.output_dir, assay_1_prefix, assay_2_prefix), 'w')
         for stat in sorted_differential_stats:
             differential_stats_file.write("%s\t%s\t%s\t%s\t%s\t%s\n" % \
                               (stat['motif_name'], stat['md_score'], stat['control_peaks'], \
@@ -213,7 +215,7 @@ def main():
     ax.tick_params(axis='x',reset=False,which='both',length=5,width=1)
     y_bound = max(np.abs(np.min(fold_change)), np.max(fold_change)) + 0.01
     plt.ylim(-1 * y_bound, y_bound)
-    plt.savefig('%s/MA_%s_to_%s_md_score.png' % (args.output_dir, args.assay_1, args.assay_2), dpi=600)
+    plt.savefig('%s/MA_%s_to_%s_md_score.png' % (args.output_dir, assay_1_prefix, assay_2_prefix), dpi=600)
 
     if args.gen_barcode:
         # Generate barcodes for each relevant TF, for both conditions
@@ -244,7 +246,7 @@ def main():
             ax1.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (perturbation_nr_peaks[relevant_tf], perturbation_mds[relevant_tf]), ha='center', size=18, zorder=0)
             ax1.text(HISTOGRAM_BINS/2, -10, args.assay_2, ha='center', size=18, zorder=0)
 
-            plt.savefig('%s/%s_barcode_%s_vs_%s.png' % (args.output_dir, relevant_tf, args.assay_1, args.assay_2), dpi=600)
+            plt.savefig('%s/%s_barcode_%s_vs_%s.png' % (args.output_dir, relevant_tf, assay_1_prefix, assay_2_prefix), dpi=600)
 
     print('All done --- ' + str(datetime.datetime.now()))
     sys.exit(0)
