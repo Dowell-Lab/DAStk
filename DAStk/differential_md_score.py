@@ -1,6 +1,7 @@
 #! /usr/bin/env/python
 
 from __future__ import print_function
+import os
 import argparse
 import datetime
 import numpy as np
@@ -18,7 +19,9 @@ from argparse import RawTextHelpFormatter
 
 # Usage:
 #
-# $ python differential_md_score.py -1 control -2 tamoxifen -p 0.000000000001 -o /outdir
+# $ python differential_md_score.py -1 control_file --label-1 "Control" \
+#                                   -2 tamoxifen_file --label-2 "Tamoxifen" \
+#                                   -p 0.000000000001 -o /outdir
 #
 
 def main():
@@ -32,6 +35,10 @@ def main():
                         help='Path to MD score file ending in _md_scores.txt generated from process_atac. Used to find the proper file with the calculated MD-scores and on the plot labels.', required=True)
     parser.add_argument('-2', '--assay-2', dest='assay_2', metavar='ASSAY_2', \
                         help='Path to MD score file ending in _md_scores.txt generated from process_atac. Used to find the proper file with the calculated MD-scores and on the plot labels.', required=True)
+    parser.add_argument('-m', '--label-1', dest='label_1', metavar='LABEL_1', \
+                        help='Label for the MA plot title corresponding to assay 1', required=False)
+    parser.add_argument('-n', '--label-2', dest='label_2', metavar='LABEL_2', \
+                        help='Label for the MA plot title corresponding to assay 2', required=False)
     parser.add_argument('-b', '--barcodes', dest='gen_barcode', action='store_true', \
                         help='Generate a barcode plot for each significant motif', default=False, required=False)
     parser.add_argument('-o', '--output', dest='output_dir', \
@@ -154,8 +161,14 @@ def main():
             most_relevant_tfs.append(text)
     #adjust_text(texts, force_points=1, on_basemap=True, expand_points=(5,5), expand_text=(3,3), arrowprops=dict(arrowstyle="-", lw=1, color='grey', alpha=0.5))
     adjust_text(texts, force_points=1, expand_points=(2,2), expand_text=(2,2), arrowprops=dict(arrowstyle="-", lw=1, color='black', alpha=0.8))
+    label_1_str = args.assay_1
+    if args.label_1:
+        label_1_str = args.label_1
+    label_2_str = args.assay_2
+    if args.label_2:
+        label_2_str = args.label_2
     plt.title(u'MA for %s vs. %s MD-scores\n(p-value cutoff: %.2E)' % \
-              (args.assay_1, args.assay_2, P_VALUE_CUTOFF), fontsize=12)
+              (label_1_str, label_2_str, P_VALUE_CUTOFF), fontsize=12)
     plt.xlabel(u'$\log_2$(Sum #peaks overlapping 3kbp window)', fontsize=14)
     plt.ylabel(u'${\Delta}$ MD-score', fontsize=14)
     plt.xlim(np.min(nr_peaks), np.max(nr_peaks) + 1)
