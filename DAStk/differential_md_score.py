@@ -102,10 +102,10 @@ def main():
         x1 = p1 * n1
         x2 = p2 * n2
         if n1 == 0:
-            print('%s had an MD-score of 0 in %s' % (label, args.assay_1))
+            print('%s had an MD-score of 0 in %s' % (label, assay_1_prefix))
             n1 = 1
         if n2 == 0:
-            print('%s had an MD-score of 0 in %s' % (label, args.assay_2))
+            print('%s had an MD-score of 0 in %s' % (label, assay_2_prefix))
             n2 = 1
         pooled = (x1 + x2)/(n1 + n2)
         z_value = (p1 - p2) / np.sqrt(pooled * (1 - pooled) * ((1/n1) + (1/n2)))
@@ -138,7 +138,7 @@ def main():
     texts = []
     # Write out all MD scores
     differential_md_scores = open("%s/%s_vs_%s_differential_md_scores.txt" % \
-                                 (args.output_dir, args.assay_1, args.assay_2), 'w')
+                                 (args.output_dir, assay_1_prefix, assay_2_prefix), 'w')
     for y, text, p_value in zip(fold_change, np_labels, p_values):
         differential_md_scores.write('%s\t%.3f\t%.2E\n' % (text, y, p_value))
     differential_md_scores.close()
@@ -161,10 +161,10 @@ def main():
             most_relevant_tfs.append(text)
     #adjust_text(texts, force_points=1, on_basemap=True, expand_points=(5,5), expand_text=(3,3), arrowprops=dict(arrowstyle="-", lw=1, color='grey', alpha=0.5))
     adjust_text(texts, force_points=1, expand_points=(2,2), expand_text=(2,2), arrowprops=dict(arrowstyle="-", lw=1, color='black', alpha=0.8))
-    label_1_str = args.assay_1
+    label_1_str = assay_1_prefix
     if args.label_1:
         label_1_str = args.label_1
-    label_2_str = args.assay_2
+    label_2_str = assay_2_prefix
     if args.label_2:
         label_2_str = args.label_2
     plt.title(u'MA for %s vs. %s MD-scores\n(p-value cutoff: %.2E)' % \
@@ -178,7 +178,7 @@ def main():
     ax.tick_params(axis='x',reset=False,which='both',length=5,width=1)
     y_bound = max(np.abs(np.min(fold_change)), np.max(fold_change)) + 0.01
     plt.ylim(-1 * y_bound, y_bound)
-    plt.savefig('%s/MA_%s_to_%s_md_score.png' % (args.output_dir, args.assay_1, args.assay_2), dpi=600)
+    plt.savefig('%s/MA_%s_to_%s_md_score.png' % (args.output_dir, assay_1_prefix, assay_2_prefix), dpi=600)
 
     if args.gen_barcode:
         # Generate barcodes for each relevant TF, for both conditions
@@ -197,7 +197,7 @@ def main():
                 ax0.matshow(heat_m, cmap=cm.YlGnBu)
             ax0.axis('off')
             ax0.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (control_nr_peaks[relevant_tf], control_mds[relevant_tf]), ha='center', size=18, zorder=0)
-            ax0.text(HISTOGRAM_BINS/2, -10, args.assay_1, ha='center', size=18, zorder=0)
+            ax0.text(HISTOGRAM_BINS/2, -10, assay_1_prefix, ha='center', size=18, zorder=0)
 
             perturbation_bc_data = np.array(perturbation_barcode[relevant_tf].split(';'))
             perturbation_bc_data = perturbation_bc_data.astype(float)
@@ -207,9 +207,9 @@ def main():
                 ax1.matshow(heat_m, cmap=cm.YlGnBu)
             ax1.axis('off')
             ax1.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (perturbation_nr_peaks[relevant_tf], perturbation_mds[relevant_tf]), ha='center', size=18, zorder=0)
-            ax1.text(HISTOGRAM_BINS/2, -10, args.assay_2, ha='center', size=18, zorder=0)
+            ax1.text(HISTOGRAM_BINS/2, -10, assay_2_prefix, ha='center', size=18, zorder=0)
 
-            plt.savefig('%s/%s_barcode_%s_vs_%s.png' % (args.output_dir, relevant_tf, args.assay_1, args.assay_2), dpi=600)
+            plt.savefig('%s/%s_barcode_%s_vs_%s.png' % (args.output_dir, relevant_tf, assay_1_prefix, assay_2_prefix), dpi=600)
 
     print('All done --- ' + str(datetime.datetime.now()))
     sys.exit(0)
