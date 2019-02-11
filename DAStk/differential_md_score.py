@@ -94,46 +94,62 @@ def main():
         p2 = float(perturbation_mds[label])
         n1 = float(control_nr_peaks[label])
         n2 = float(perturbation_nr_peaks[label])
-
-        for line in control_barcode:
-            control_bc_array = np.array(control_barcode[line].split(';'))
-            control_bc_boot = control_bc_array.astype(int)
-            
-            # configure bootstrap
-            control_values = control_bc_boot
-            control_n_iterations = int(10 + (0.1 * n1))
-            control_n_size = int(len(control_bc_boot) * 0.50)
-            # run bootstrap
-            stats = list()
-            for i in range(control_n_iterations):
-                # prepare train sets
-                train = resample(control_values, n_samples=control_n_size)
-                variance = np.var(train)
-                stats.append(variance)
-                control_bootstrap = np.sum(stats) / control_n_iterations
+        #p1 = .1
+        #p2 = .67
+        #n1 = 10
+        #n2 = 13000
+        if n1 <= 80:
+    #        print('%s had an MD-score of 0 in %s' % (label, args.assay_1))
+            p1 = .1
+        if n2 <= 80:
+    #        print('%s had an MD-score of 0 in %s' % (label, args.assay_2))
+            p2 = .1
+        if n1 >= 80:
+            for line in control_barcode:
+                control_bc_array = np.array(control_barcode[line].split(';'))
+                control_bc_boot = control_bc_array.astype(int)
+                #print(control_bc_boot)
+                
+                # configure bootstrap
+                values = control_bc_boot
+                control_n_iterations = 599
+                control_n_size = int(len(control_bc_boot) * 0.1)
+                # run bootstrap
+                stats = list()
+                for i in range(control_n_iterations):
+                    # prepare train and test sets
+                    train = resample(values, n_samples=control_n_size, replace=True)
+                    a = np.var(train)
+                    stats.append(a)
+                    control_bootstrap = np.sum(stats) / control_n_iterations
         
         for line in perturbation_barcode:
             perturbation_bc_array = np.array(perturbation_barcode[line].split(';'))
             perturbation_bc_boot = perturbation_bc_array.astype(int)
+            #print(perturbation_bc_boot)
             
             # configure bootstrap
-            perturbation_values = perturbation_bc_boot
-            perturbation_n_iterations = int(10 + (0.1 * n2))
-            perturbation_n_size = int(len(perturbation_bc_boot) * 0.50)
+            values = perturbation_bc_boot
+            perturbation_n_iterations = 599
+            perturbation_n_size = int(len(perturbation_bc_boot) * 0.1)
             # run bootstrap
             stats = list()
             for i in range(perturbation_n_iterations):
-                # prepare train sets
-                train = resample(perturbation_values, n_samples=perturbation_n_size)
-                variance = np.var(train)
-                stats.append(variance)
+                # prepare train and test sets
+                train = resample(values, n_samples=perturbation_n_size, replace=True)
+                a = np.var(train)
+                stats.append(a)
                 perturbation_bootstrap = np.sum(stats) / perturbation_n_iterations
         
-        x1 = p1 * control_n_iterations
-        x2 = p2 * perturbation_n_iterations
-        pooled = (x1 + x2)/(control_n_iterations + perturbation_n_iterations)
+        #x1 = p1 * control_n_iterations
+        #x2 = p2 * perturbation_n_iterations
+        #pooled = (x1 + x2)/(control_n_iterations + perturbation_n_iterations)
         #z_value = (p1 - p2) / np.sqrt(pooled * (1 / pooled) * (control_bootstrap/control_n_iterations) + (perturbation_bootstrap/perturbation_n_iterations))
-        z_value = (p1 - p2) / np.sqrt((control_bootstrap/control_n_iterations) + (perturbation_bootstrap/perturbation_n_iterations))
+        #z_value = (p1 - p2) / np.sqrt(perturbation_bootstrap * (1 / n1) + (1 / n2))
+        if n1 <= 80:
+            z_value = (p1 - p2) / np.sqrt((perturbation_bootstrap/perturbation_n_iterations))
+        else: 
+            z_value = (p1 - p2) / np.sqrt((control_bootstrap / n1) + (perturbation_bootstrap  / n2))
         p_value = norm.sf(abs(z_value))*2
         p_values.append(p_value)
         
