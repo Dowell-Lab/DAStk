@@ -178,6 +178,7 @@ def main():
     ax.tick_params(axis='x',reset=False,which='both',length=5,width=1)
     y_bound = max(np.abs(np.min(fold_change)), np.max(fold_change)) + 0.01
     plt.ylim(-1 * y_bound, y_bound)
+    plt.tight_layout()
     plt.savefig('%s/MA_%s_to_%s_md_score.png' % (args.output_dir, assay_1_prefix, assay_2_prefix), dpi=600)
 
     if args.gen_barcode:
