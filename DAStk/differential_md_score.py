@@ -85,13 +85,13 @@ def get_differential_md_scores(label):
     p2 = float(perturbation_mds[label])
     n1 = float(control_nr_peaks[label])
     n2 = float(perturbation_nr_peaks[label])
-    if n1 <= 80:
+    if n1 <= 70:
         print('%s does not have a sufficient number of calls in %s. Setting MD score to 0.1 (background) for differntial analysis.' % (label, assay_1_prefix))
         p1 = .1
-    if n2 <= 80:
+    if n2 <= 70:
         print('%s does not have a sufficient number of calls in %s. Setting MD score to 0.1 (background) for differntial analysis.' % (label, assay_2_prefix))
         p2 = .1
-    if n1 >= 80:
+    if n1 >= 70:
         for line in control_barcode:
             control_bc_array = np.array(control_barcode[line].split(';'))
             control_bc_boot = control_bc_array.astype(int)
