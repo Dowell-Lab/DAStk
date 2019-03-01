@@ -14,11 +14,11 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='DAStk',
-    version='0.1.5',
+    version='0.2.0',
     description='Differential ATAC-seq toolkit',
     long_description=long_description,
     license='BSD',
-    url='https://biof-git.colorado.edu/dowelllab/DAStk',
+    url='https://github.com/Dowell-Lab/DAStk',
     author='Ignacio Tripodi',
     author_email='ignacio.tripodi@colorado.edu',
     python_requires='>=2.7',
@@ -56,8 +56,8 @@ setup(
     },
 
     project_urls={
-        'Bug Reports': 'https://biof-git.colorado.edu/dowelllab/DAStk/issues',
-        'Source': 'https://biof-git.colorado.edu/dowelllab/DAStk',
+        'Bug Reports': 'https://github.com/Dowell-Lab/DAStk/issues',
+        'Source': 'https://github.com/Dowell-Lab/DAStk',
         'Human Motif Sites': 'http://dowell.colorado.edu/pubs/DAStk/human_motifs.tar.gz',
         'Mouse Motif Sites': 'http://dowell.colorado.edu/pubs/DAStk/mouse_motifs.tar.gz',
     },
