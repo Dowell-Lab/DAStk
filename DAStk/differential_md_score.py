@@ -64,7 +64,7 @@ def main():
             control_mds[line_chunks[0][:-4]] = float(line_chunks[1])
             labels.append(line_chunks[0][:-4])
             control_nr_peaks[line_chunks[0][:-4]] = float(line_chunks[3])
-            control_barcode[line_chunks[0][:-4]] = line_chunks[5]
+            control_barcode[line_chunks[0][:-4]] = line_chunks[4]
     perturbation_mds = {}
     perturbation_nr_peaks = {}
     perturbation_barcode = {}
@@ -75,7 +75,7 @@ def main():
             assert(line_chunks[0][:-4] in labels)
             perturbation_mds[line_chunks[0][:-4]] = float(line_chunks[1])
             perturbation_nr_peaks[line_chunks[0][:-4]] = int(line_chunks[3])
-            perturbation_barcode[line_chunks[0][:-4]] = line_chunks[5]
+            perturbation_barcode[line_chunks[0][:-4]] = line_chunks[4]
 
     print('Done gathering data, ready to plot --- ' + str(datetime.datetime.now()))
 
