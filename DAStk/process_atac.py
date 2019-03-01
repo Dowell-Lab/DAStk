@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 plt.ioff()
 from functools import partial
 from operator import itemgetter
+from functools import reduce
 
 
 # returns ith column from the given matrix
@@ -121,11 +122,11 @@ def find_motifs_in_chrom(current_chrom, files):
         except StopIteration:
             break
 
-    return [tf_distances, motif_seqs, g_h, g_H, total_motif_sites]
+    return [tf_distances, g_h, g_H, total_motif_sites]
 
 
 def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename):
-    HISTOGRAM_BINS = 100
+    HISTOGRAM_BINS = 150
     # Smart way to make this organism-specific?
     # We can pull this list from chromsoome sizes file -- MAG
     CHROMOSOMES = ['chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr6', 'chr7', 'chr8', \
@@ -144,12 +145,15 @@ def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename):
         tf_distances = get_column(results_matching_motif, 0)
         motif_seqs = get_column(results_matching_motif, 1)
         sums = np.sum(results_matching_motif, axis=0)
-        overall_g_h = sums[2]
-        overall_g_H = sums[3]
-        overall_motif_sites = sums[4]
+        overall_g_h = sums[1]
+        overall_g_H = sums[2]
+        overall_motif_sites = sums[3]
+        print(overall_g_h)
 
         # Calculate the heatmap for this motif's barcode
-        tf_distances = results[0][0]
+        
+        tf_distances = reduce(lambda a, b: [*a, *b], [x[0] for x in results])
+        #print(tf_distances)
         heatmap, xedges = np.histogram(tf_distances, bins=HISTOGRAM_BINS)
         str_heatmap = np.char.mod('%d', heatmap)
         # TODO: Use the motif sequences to generate a logo for each motif, based
@@ -160,21 +164,11 @@ def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename):
                     (overall_g_H + 1), \
                     (overall_motif_sites + 1), \
                     ';'.join(str_heatmap)]
-#        else:
-#            return [float(overall_g_h + .1)/(overall_g_H + 1), \
-#                    (overall_g_h + .1), \
-#                    (overall_g_H + 1), \
-#                    (overall_motif_sites + 1), \
-#                    ';'.join(str_heatmap)]            
-#            return [0, 0, 0, overall_motif_sites, np.zeros(HISTOGRAM_BINS)]
     else:
         return None
 
-
 def main():
     parser = argparse.ArgumentParser(description='This script analyzes ATAC-Seq and GRO-Seq data and produces various plots for further data analysis.', epilog='IMPORTANT: Please ensure that ALL bed files used with this script are sorted by the same criteria.')
-#    parser.add_argument('-x', '--prefix', dest='output_prefix', metavar='CELL_TYPE', \
-#                        help='Cell type (k562, imr90, etc), or any other appropriate output file prefix', required=True)
     parser.add_argument('-e', '--atac-peaks', dest='atac_peaks_filename', \
                         help='Full path to the ATAC-Seq broadPeak file.', \
                         default='', required=True)

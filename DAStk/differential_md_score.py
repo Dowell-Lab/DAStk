@@ -44,7 +44,7 @@ parser.add_argument('-n', '--threads', dest='threads', metavar='THREADS', \
                     help='Number of threads for multi-processing. Defaults to 1.', default=1, required=False)    
 args = parser.parse_args()
 
-HISTOGRAM_BINS = 100
+HISTOGRAM_BINS = 150
 P_VALUE_CUTOFF = float(args.p_value)
 assay_1_prefix = os.path.splitext(os.path.basename(args.assay_1))[0]
 assay_2_prefix = os.path.splitext(os.path.basename(args.assay_2))[0]
