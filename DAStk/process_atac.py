@@ -153,7 +153,7 @@ def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename):
         # Calculate the heatmap for this motif's barcode
         
         tf_distances = reduce(lambda a, b: [*a, *b], [x[0] for x in results])
-        print(tf_distances)
+        #print(tf_distances)
         heatmap, xedges = np.histogram(tf_distances, bins=HISTOGRAM_BINS)
         str_heatmap = np.char.mod('%d', heatmap)
         # TODO: Use the motif sequences to generate a logo for each motif, based
