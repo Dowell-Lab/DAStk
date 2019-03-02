@@ -57,9 +57,8 @@ def find_motifs_in_chrom(current_chrom, files):
     g_h = 0
     g_H = 0
     tf_distances = []
-    motif_seqs = []
     try:
-        motif_region = next(motif_iter)   # this gets the next motif in the list
+        motif_region = next(motif_iter)   # get the first motif in the list
     except StopIteration:
         print('No motifs for chromosome ' + current_chrom + ' on file ' + tf_motif_filename)
         return None
@@ -80,13 +79,14 @@ def find_motifs_in_chrom(current_chrom, files):
                             (last_motif.end - last_motif.start)/2
                 tf_distances.append(atac_median - tf_median)
                 try:
-                    motif_region = next(motif_iter)   # this gets the next motif in the list
+                    motif_region = next(motif_iter)   # get the next motif in the list
                 except StopIteration:
                     pass
                 last_motif = motif_region
                 if motif_region.start > (atac_median + H):
                     motifs_within_region = False
 
+        # Move to the next putative motif sites until we get one past our evaluation window
         while motifs_within_region:
             # account for those within the smaller window (h)
             if is_in_window(motif_region, atac_median, h):
@@ -97,12 +97,11 @@ def find_motifs_in_chrom(current_chrom, files):
                 tf_median = motif_region.start + (motif_region.end - \
                             motif_region.start)/2
                 tf_distances.append(atac_median - tf_median)
-                #motif_seqs.append(motif_region.sequence)
 
             # if we still haven't shifted past this peak...
             if motif_region.start <= (atac_median + H):
                 try:
-                    motif_region = next(motif_iter)   # this gets the next motif in the list
+                    motif_region = next(motif_iter)   # get the next motif in the list
                 except StopIteration:
                     # No more TF motifs for this chromosome
                     break
@@ -110,14 +109,7 @@ def find_motifs_in_chrom(current_chrom, files):
             else:
                 motifs_within_region = False
 
-    # Count any remaining TF motif sites after the last ATAC peak
-    while(len(motif_region) > 0):
-        try:
-            motif_region = next(motif_iter)   # this gets the next motif in the list
-        except StopIteration:
-            break
-
-    return [tf_distances, motif_seqs, g_h, g_H]
+    return [tf_distances, g_h, g_H]
 
 
 def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename):
@@ -137,14 +129,12 @@ def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename):
 
     results_matching_motif = [x for x in results if x is not None]
     if len(results_matching_motif) > 0:
-        tf_distances = get_column(results_matching_motif, 0)
-        motif_seqs = get_column(results_matching_motif, 1)
         sums = np.sum(results_matching_motif, axis=0)
-        overall_g_h = sums[2]
-        overall_g_H = sums[3]
+        overall_g_h = sums[1]
+        overall_g_H = sums[2]
 
         # Calculate the heatmap for this motif's barcode
-        tf_distances = results[0][0]
+        tf_distances = sums[0]
         heatmap, xedges = np.histogram(tf_distances, bins=HISTOGRAM_BINS)
         str_heatmap = np.char.mod('%d', heatmap)
         # TODO: Use the motif sequences to generate a logo for each motif, based
