@@ -40,7 +40,7 @@ parser.add_argument('-b', '--barcodes', dest='gen_barcode', action='store_true',
 parser.add_argument('-o', '--output', dest='output_dir', \
                     help='Path to where output files will be saved.', \
                     default='', required=True)
-parser.add_argument('-n', '--threads', dest='threads', metavar='THREADS', \
+parser.add_argument('-t', '--threads', dest='threads', metavar='THREADS', \
                     help='Number of threads for multi-processing. Defaults to 1.', default=1, required=False)    
 args = parser.parse_args()
 
@@ -63,7 +63,7 @@ for line in control_fd:
         control_mds[line_chunks[0][:-4]] = float(line_chunks[1])
         labels.append(line_chunks[0][:-4])
         control_nr_peaks[line_chunks[0][:-4]] = float(line_chunks[3])
-        control_barcode[line_chunks[0][:-4]] = line_chunks[5]
+        control_barcode[line_chunks[0][:-4]] = line_chunks[4]
 perturbation_mds = {}
 perturbation_nr_peaks = {}
 perturbation_barcode = {}
@@ -74,7 +74,7 @@ for line in perturbation_fd:
         assert(line_chunks[0][:-4] in labels)
         perturbation_mds[line_chunks[0][:-4]] = float(line_chunks[1])
         perturbation_nr_peaks[line_chunks[0][:-4]] = int(line_chunks[3])
-        perturbation_barcode[line_chunks[0][:-4]] = line_chunks[5]
+        perturbation_barcode[line_chunks[0][:-4]] = line_chunks[4]
         
 def get_differential_md_scores(label):        
     control = float(control_mds[label])
