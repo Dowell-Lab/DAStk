@@ -88,7 +88,7 @@ This entire process can be executed in this order by calling `tf_activity_change
 
 ### Motif Files
 
-Feel free to use the motif files provided, [human_motifs.tar.gz](http://dowell.colorado.edu/pubs/DAStk/human_motifs.tar.gz) and [mouse_motifs.tar.gz](http://dowell.colorado.edu/pubs/DAStk/mouse_motifs.tar.gz) for the `hg19` and `mm10` reference genomes, respectively. They have been generated from HOCOMOCO's v10 mononucleotide model. To generate your own files for each motif, you can use FIMO in combination with the downloaded `.meme` files from your TF database of choice. For example, if using HOCOMOCO, you can create the motif file for TP53 using their mononucleotide model with a p-value threshold of 0.000001 by:
+Feel free to use the motif files provided, [human_motifs.tar.gz](http://dowell.colorado.edu/pubs/DAStk/human_motifs.tar.gz) and [mouse_motifs.tar.gz](http://dowell.colorado.edu/pubs/DAStk/mouse_motifs.tar.gz) for the `hg19` and `mm10` reference genomes, respectively. They have been generated from HOCOMOCO's v11 mononucleotide model, background-corrected for each reference genome. To generate your own `bed` files for each motif from this or any other source, you can use FIMO in combination with the downloaded `.meme` files from your TF database of choice. For example, if using HOCOMOCO, you can create the motif file for TP53 using their mononucleotide model with a p-value threshold of 0.000001 by:
 
     $ fimo -max-stored-scores 10000000 --thresh 1e-6 -oc /path/to/output/directory -motif /path/to/motif/file \
       /path/to/HOCOMOCOv11_HUMAN_mono_meme_format.meme /path/to/whole_genome.fa
@@ -99,8 +99,12 @@ Feel free to use the motif files provided, [human_motifs.tar.gz](http://dowell.c
 ### Citation
 
 Please cite DAStk if you have used it in your research!  
+
 *Tripodi, I.J.; Allen, M.A.; Dowell, R.D.	Detecting Differential Transcription Factor Activity from ATAC-Seq Data. Molecules 2018, 23, 1136.*  
 
+If you have used the provided scanned motif regions from HOCOMOCO, please cite them as well:
+
+*Kulakovskiy, I.V., Vorontsov, I.E., Yevshin, I.S., Sharipov, R.N., Fedorova, A.D., Rumynskiy, E.I., Medvedeva, Y.A., Magana-Mora, A., Bajic, V.B., Papatsenko, D.A., et al. (2018). HOCOMOCO: towards a complete collection of transcription factor binding models for human and mouse via large-scale ChIP-Seq analysis. Nucleic Acids Res 46, D252–D259.*
 
 For any questions or bug reports, please use the Issue Tracker or email us:  
 
