@@ -55,6 +55,7 @@ print('Starting --- ' + str(datetime.datetime.now()))
 control_mds = {}
 control_nr_peaks = {}
 control_barcode = {}
+control_total_motifs = {}
 labels = []
 control_fd = open('%s' % args.assay_1)
 for line in control_fd:
@@ -62,34 +63,41 @@ for line in control_fd:
     if '.bed' in line_chunks[0]:
         control_mds[line_chunks[0][:-4]] = float(line_chunks[1])
         labels.append(line_chunks[0][:-4])
-        control_nr_peaks[line_chunks[0][:-4]] = float(line_chunks[3])
-        control_barcode[line_chunks[0][:-4]] = line_chunks[4]
+        control_nr_peaks[line_chunks[0][:-4]] = round(float(line_chunks[3]))
+        control_total_motifs[line_chunks[0][:-4]] = int(line_chunks[4])
+        control_barcode[line_chunks[0][:-4]] = line_chunks[5]
 perturbation_mds = {}
 perturbation_nr_peaks = {}
 perturbation_barcode = {}
+perturbation_total_motifs = {}
 perturbation_fd = open('%s' % args.assay_2)
 for line in perturbation_fd:
     line_chunks = line.split(',')
     if '.bed' in line_chunks[0]:
         assert(line_chunks[0][:-4] in labels)
         perturbation_mds[line_chunks[0][:-4]] = float(line_chunks[1])
-        perturbation_nr_peaks[line_chunks[0][:-4]] = int(line_chunks[3])
-        perturbation_barcode[line_chunks[0][:-4]] = line_chunks[4]
+        perturbation_nr_peaks[line_chunks[0][:-4]] = round(float(line_chunks[3]))
+        perturbation_total_motifs[line_chunks[0][:-4]] = int(line_chunks[4])
+        perturbation_barcode[line_chunks[0][:-4]] = line_chunks[5]
         
-def get_differential_md_scores(label):        
+def get_differential_md_scores(label):
     control = float(control_mds[label])
     perturbation = float(perturbation_mds[label])
     nr_peaks = np.log2(float(control_nr_peaks[label]) + float(perturbation_nr_peaks[label]))
     fold_change = float(perturbation_mds[label]) - float(control_mds[label])
-    p1 = float(abs(np.log10(control_mds[label])))
-    p2 = float(abs(np.log10(perturbation_mds[label])))
+    p1 = float(control_mds[label])
+    p2 = float(perturbation_mds[label])
     n1 = float(control_nr_peaks[label])
     n2 = float(perturbation_nr_peaks[label])
+    #p1 = .1
+    #p2 = .67
+    #n1 = 10
+    #n2 = 13000
     if n1 <= 70:
-        print('%s does not have a sufficient number of calls in %s. Setting MD score to 0.1 (background) for differntial analysis.' % (label, assay_1_prefix))
+         #print('%s had an MD-score of 0 in %s' % (label, args.assay_1))
         p1 = .1
     if n2 <= 70:
-        print('%s does not have a sufficient number of calls in %s. Setting MD score to 0.1 (background) for differntial analysis.' % (label, assay_2_prefix))
+         #print('%s had an MD-score of 0 in %s' % (label, args.assay_2))
         p2 = .1
     if n1 >= 70:
         for line in control_barcode:
@@ -109,7 +117,7 @@ def get_differential_md_scores(label):
                 a = np.var(train)
                 stats.append(a)
             control_bootstrap = np.median(stats)
-            print(control_bootstrap)
+            #print(control_bootstrap)
                 
     if n2 >=70:            
         for line in perturbation_barcode:
@@ -128,16 +136,18 @@ def get_differential_md_scores(label):
                 a = np.var(train)
                 stats.append(a)
             perturbation_bootstrap = np.median(stats)
-            print(perturbation_bootstrap)
+            #print(perturbation_bootstrap)
             
-    if n1 <= 70:
+    if (n1 <= 70) & (n2 >= 70):
         z_value = (abs(np.log10(p1)) - abs(np.log10(p2))) / np.sqrt((perturbation_bootstrap/perturbation_n_iterations))
-    elif n2 <= 70:
+    elif (n2 <= 70) & (n1 >= 70):
         z_value = (abs(np.log10(p1)) - abs(np.log10(p2))) / np.sqrt((control_bootstrap/control_n_iterations))
+    elif (n1 <= 70) & (n2 <= 70):
+        z_value = abs(np.log10(p1)) - abs(np.log10(p2))
     else: 
         z_value = (abs(np.log10(p1)) - abs(np.log10(p2))) / np.sqrt((control_bootstrap / n1) + (perturbation_bootstrap  / n2))
     p_value = norm.sf(abs(z_value))*2
-    p_values.append(p_value)
+    #p_values.append(p_value)
     
     if p_value < (P_VALUE_CUTOFF / 10) and float(perturbation_mds[label]) > float(control_mds[label]):
         color = '#c64e50'
@@ -176,6 +186,8 @@ with concurrent.futures.ProcessPoolExecutor(threads) as executor:
     jobs = [executor.submit(get_differential_md_scores, label) 
                for label in labels]
     differential_results = [r.result() for r in jobs]
+
+print(differential_results)    
     
 sorted_differential_stats = sorted(differential_results, key=itemgetter('p_value'))
 
@@ -207,6 +219,7 @@ texts = []
 
 for x, y, text, p_value in zip(nr_peaks, fold_change, np_labels, p_values):        
     if p_value < P_VALUE_CUTOFF:
+        print(y)
     #if (y > 0.02 or y < -0.02) and x > 12:
         print('%s (%.3f, p-value = %.2E)' % (text, y, p_value))
         label_color = 'maroon'
