@@ -126,12 +126,15 @@ def find_motifs_in_chrom(current_chrom, files):
     return [tf_distances, g_h, g_H, total_motif_sites]
 
 
-def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename):
-    HISTOGRAM_BINS = 150
-    pybedtools.chromsizes_to_file(pybedtools.chromsizes(args.genome), 'genome')
-    with open('genome') as f:
+def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename, genome):
+    #Get chromosomes for mutliprocessing
+    pybedtools.chromsizes_to_file(pybedtools.chromsizes(genome), 'chroms')
+    with open('chroms') as f:
         chr_list = [str(line.split()[0]) for line in f]
-        CHROMOSOMES = [word for word in chromosomes if len(word) <= 6]
+        CHROMOSOMES = [word for word in chr_list if len(word) <= 6]
+        print(CHROMOSOMES)
+        
+    HISTOGRAM_BINS = 150
     pool = multiprocessing.Pool(mp_threads)
     results = pool.map(partial( find_motifs_in_chrom, \
                                 files=[tf_motif_filename, atac_peaks_filename]), \
@@ -151,7 +154,7 @@ def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename):
 
         # Calculate the heatmap for this motif's barcode
         
-        tf_distances = reduce(lambda a, b: [*a, *b], [x[0] for x in results])
+        tf_distances = reduce(lambda a, b: [*a, *b], [x[0] for x in results if x is not None])
         heatmap, xedges = np.histogram(tf_distances, bins=HISTOGRAM_BINS)
         str_heatmap = np.char.mod('%d', heatmap)
         # TODO: Use the motif sequences to generate a logo for each motif, based
@@ -234,7 +237,7 @@ def main():
         filename_no_path = filename.split('/')[-1]
         if os.path.getsize(filename) > 0 and \
            os.path.basename(filename).endswith(tuple(['.bed', '.BedGraph', '.txt'])):
-            [md_score, small_window, large_window, motif_site_count, heat] = get_md_score(filename, int(args.mp_threads), args.atac_peaks_filename)
+            [md_score, small_window, large_window, motif_site_count, heat] = get_md_score(filename, int(args.mp_threads), args.atac_peaks_filename, args.genome)
             print('The MD-score for ATAC reads vs %s is %.6f' % (filename_no_path, md_score))
             motif_stats.append({ 'motif_file': filename_no_path, \
                                  'md_score': md_score, \
