@@ -139,13 +139,13 @@ def get_differential_md_scores(label):
             #print(perturbation_bootstrap)
             
     if (n1 <= 70) & (n2 >= 70):
-        z_value = (abs(np.log10(p1)) - abs(np.log10(p2))) / np.sqrt((perturbation_bootstrap/perturbation_n_iterations))
+        z_value = (abs(np.log(p1)) - abs(np.log(p2))) / np.sqrt((perturbation_bootstrap/perturbation_n_iterations))
     elif (n2 <= 70) & (n1 >= 70):
-        z_value = (abs(np.log10(p1)) - abs(np.log10(p2))) / np.sqrt((control_bootstrap/control_n_iterations))
+        z_value = (abs(np.log(p1)) - abs(np.log(p2))) / np.sqrt((control_bootstrap/control_n_iterations))
     elif (n1 <= 70) & (n2 <= 70):
-        z_value = abs(np.log10(p1)) - abs(np.log10(p2))
+        z_value = abs(np.log(p1)) - abs(np.log(p2))
     else: 
-        z_value = (abs(np.log10(p1)) - abs(np.log10(p2))) / np.sqrt((control_bootstrap / n1) + (perturbation_bootstrap  / n2))
+        z_value = (abs(np.log(p1)) - abs(np.log(p2))) / np.sqrt((control_bootstrap / n1) + (perturbation_bootstrap  / n2))
     p_value = norm.sf(abs(z_value))*2
     #p_values.append(p_value)
     
