@@ -40,7 +40,7 @@ parser.add_argument('-b', '--barcodes', dest='gen_barcode', action='store_true',
 parser.add_argument('-o', '--output', dest='output_dir', \
                     help='Path to where output files will be saved.', \
                     default='', required=True)
-parser.add_argument('-n', '--threads', dest='threads', metavar='THREADS', \
+parser.add_argument('-t', '--threads', dest='threads', metavar='THREADS', \
                     help='Number of threads for multi-processing. Defaults to 1.', default=1, required=False)    
 args = parser.parse_args()
 
