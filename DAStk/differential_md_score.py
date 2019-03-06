@@ -63,7 +63,7 @@ for line in control_fd:
         control_mds[line_chunks[0][:-4]] = float(line_chunks[1])
         labels.append(line_chunks[0][:-4])
         control_nr_peaks[line_chunks[0][:-4]] = float(line_chunks[3])
-        control_barcode[line_chunks[0][:-4]] = line_chunks[5]
+        control_barcode[line_chunks[0][:-4]] = line_chunks[4]
 perturbation_mds = {}
 perturbation_nr_peaks = {}
 perturbation_barcode = {}
@@ -74,15 +74,15 @@ for line in perturbation_fd:
         assert(line_chunks[0][:-4] in labels)
         perturbation_mds[line_chunks[0][:-4]] = float(line_chunks[1])
         perturbation_nr_peaks[line_chunks[0][:-4]] = int(line_chunks[3])
-        perturbation_barcode[line_chunks[0][:-4]] = line_chunks[5]
+        perturbation_barcode[line_chunks[0][:-4]] = line_chunks[4]
         
 def get_differential_md_scores(label):        
     control = float(control_mds[label])
     perturbation = float(perturbation_mds[label])
     nr_peaks = np.log2(float(control_nr_peaks[label]) + float(perturbation_nr_peaks[label]))
     fold_change = float(perturbation_mds[label]) - float(control_mds[label])
-    p1 = float(control_mds[label])
-    p2 = float(perturbation_mds[label])
+    p1 = float(abs(np.log10(control_mds[label])))
+    p2 = float(abs(np.log10(perturbation_mds[label])))
     n1 = float(control_nr_peaks[label])
     n2 = float(perturbation_nr_peaks[label])
     if n1 <= 70:
@@ -108,37 +108,37 @@ def get_differential_md_scores(label):
                 train = resample(values, n_samples=control_n_size, replace=True)
                 a = np.var(train)
                 stats.append(a)
-                control_bootstrap = np.sum(stats) / control_n_iterations
-    
-    for line in perturbation_barcode:
-        perturbation_bc_array = np.array(perturbation_barcode[line].split(';'))
-        perturbation_bc_boot = perturbation_bc_array.astype(int)
-        #print(perturbation_bc_boot)
-        
-        # configure bootstrap
-        values = perturbation_bc_boot
-        perturbation_n_iterations = 599
-        perturbation_n_size = int(len(perturbation_bc_boot) * 0.1)
-        # run bootstrap
-        stats = list()
-        for i in range(perturbation_n_iterations):
-            # prepare train and test sets
-            train = resample(values, n_samples=perturbation_n_size, replace=True)
-            a = np.var(train)
-            stats.append(a)
-            perturbation_bootstrap = np.sum(stats) / perturbation_n_iterations
-    
-    #x1 = p1 * control_n_iterations
-    #x2 = p2 * perturbation_n_iterations
-    #pooled = (x1 + x2)/(control_n_iterations + perturbation_n_iterations)
-    #z_value = (p1 - p2) / np.sqrt(pooled * (1 / pooled) * (control_bootstrap/control_n_iterations) + (perturbation_bootstrap/perturbation_n_iterations))
-    #z_value = (p1 - p2) / np.sqrt(perturbation_bootstrap * (1 / n1) + (1 / n2))
-    if n1 <= 80:
-        z_value = (p1 - p2) / np.sqrt((perturbation_bootstrap/perturbation_n_iterations))
+            control_bootstrap = np.median(stats)
+            print(control_bootstrap)
+                
+    if n2 >=70:            
+        for line in perturbation_barcode:
+            perturbation_bc_array = np.array(perturbation_barcode[line].split(';'))
+            perturbation_bc_boot = perturbation_bc_array.astype(int)
+            
+            # configure bootstrap
+            values = perturbation_bc_boot
+            perturbation_n_iterations = 599
+            perturbation_n_size = int(len(perturbation_bc_boot) * 0.1)
+            # run bootstrap
+            stats = list()
+            for i in range(perturbation_n_iterations):
+                # prepare train and test sets
+                train = resample(values, n_samples=perturbation_n_size, replace=True)
+                a = np.var(train)
+                stats.append(a)
+            perturbation_bootstrap = np.median(stats)
+            print(perturbation_bootstrap)
+            
+    if n1 <= 70:
+        z_value = (abs(np.log10(p1)) - abs(np.log10(p2))) / np.sqrt((perturbation_bootstrap/perturbation_n_iterations))
+    elif n2 <= 70:
+        z_value = (abs(np.log10(p1)) - abs(np.log10(p2))) / np.sqrt((control_bootstrap/control_n_iterations))
     else: 
-        z_value = (p1 - p2) / np.sqrt((control_bootstrap / n1) + (perturbation_bootstrap  / n2))
+        z_value = (abs(np.log10(p1)) - abs(np.log10(p2))) / np.sqrt((control_bootstrap / n1) + (perturbation_bootstrap  / n2))
     p_value = norm.sf(abs(z_value))*2
-    #p_values.append(p_value)
+    p_values.append(p_value)
+    
     if p_value < (P_VALUE_CUTOFF / 10) and float(perturbation_mds[label]) > float(control_mds[label]):
         color = '#c64e50'
         size = 70

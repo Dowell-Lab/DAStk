@@ -12,6 +12,7 @@ import os.path
 import pandas as pd
 import sys
 import matplotlib as mpl
+import pybedtools
 # to prevent DISPLAY weirdness when running in the cluster:
 mpl.use('Agg')
 import matplotlib.pyplot as plt
@@ -127,12 +128,10 @@ def find_motifs_in_chrom(current_chrom, files):
 
 def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename):
     HISTOGRAM_BINS = 150
-    # Smart way to make this organism-specific?
-    # We can pull this list from chromsoome sizes file -- MAG
-    CHROMOSOMES = ['chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr6', 'chr7', 'chr8', \
-                    'chr9', 'chr10', 'chr11', 'chr12', 'chr13', 'chr14', 'chr15', \
-                    'chr16', 'chr17', 'chr18', 'chr19', 'chr20', 'chr21', 'chr22', \
-                    'chrX', 'chrY']
+    pybedtools.chromsizes_to_file(pybedtools.chromsizes(args.genome), 'genome')
+    with open('genome') as f:
+        chr_list = [str(line.split()[0]) for line in f]
+        CHROMOSOMES = [word for word in chromosomes if len(word) <= 6]
     pool = multiprocessing.Pool(mp_threads)
     results = pool.map(partial( find_motifs_in_chrom, \
                                 files=[tf_motif_filename, atac_peaks_filename]), \
@@ -153,14 +152,13 @@ def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename):
         # Calculate the heatmap for this motif's barcode
         
         tf_distances = reduce(lambda a, b: [*a, *b], [x[0] for x in results])
-        #print(tf_distances)
         heatmap, xedges = np.histogram(tf_distances, bins=HISTOGRAM_BINS)
         str_heatmap = np.char.mod('%d', heatmap)
         # TODO: Use the motif sequences to generate a logo for each motif, based
         #       only on the overlapping ATAC-Seq peaks
         if overall_g_H >= 0:
-            return [float(overall_g_h + .1)/(overall_g_H + 1), \
-                    (overall_g_h + .1), \
+            return [float(overall_g_h + 1)/(overall_g_H + 1), \
+                    (overall_g_h + 1), \
                     (overall_g_H + 1), \
                     (overall_motif_sites + 1), \
                     ';'.join(str_heatmap)]
@@ -175,6 +173,9 @@ def main():
     parser.add_argument('-m', '--motif-path', dest='tf_motif_path', \
                         help='Path to the location of the motif sites for the desired reference genome (i.e., "/usr/local/motifs/human/hg19/*").', \
                         default='', required=True)
+    parser.add_argument('-g', '--genome', dest='genome', \
+                        help='Genome to which the organism is mapped (e.g. hg38, mm10)', \
+                        default='hg38', required=True)
     parser.add_argument('-t', '--threads', dest='mp_threads', \
                         help='Number of CPUs to use for multiprocessing of MD-score calculations. Depends on your hardware architecture.', \
                         default='1', required=False)
