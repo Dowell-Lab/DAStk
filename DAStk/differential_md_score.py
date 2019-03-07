@@ -41,7 +41,9 @@ parser.add_argument('-o', '--output', dest='output_dir', \
                     help='Path to where output files will be saved.', \
                     default='', required=True)
 parser.add_argument('-t', '--threads', dest='threads', metavar='THREADS', \
-                    help='Number of threads for multi-processing. Defaults to 1.', default=1, required=False)    
+                    help='Number of threads for multi-processing. Defaults to 1.', default=False, required=False)
+parser.add_argument('-c', '--chip', dest='chip', metavar='ChIP', \
+                    help='If the input is ChIP data, it may be useful to specify this flag as it will change the variance calulation because a large difference in sites between control and treatment will be expected.', default=1, required=False) 
 args = parser.parse_args()
 
 HISTOGRAM_BINS = 150
@@ -116,8 +118,7 @@ def get_differential_md_scores(label):
             train = resample(values, n_samples=control_n_size, replace=True)
             a = np.var(train)
             stats.append(a)
-        control_bootstrap = np.median(stats)
-        #print(control_bootstrap)
+        control_bootstrap = np.median(stats) / 10
                       
     for line in perturbation_barcode:
         perturbation_bc_array = np.array(perturbation_barcode[line].split(';'))
@@ -134,12 +135,19 @@ def get_differential_md_scores(label):
             train = resample(values, n_samples=perturbation_n_size, replace=True)
             a = np.var(train)
             stats.append(a)
-        perturbation_bootstrap = np.median(stats)
-        #print(perturbation_bootstrap)
-         
-    z_value = (abs(np.log10(p1)) - abs(np.log10(p2))) / np.sqrt((control_bootstrap / n1) + (perturbation_bootstrap  / n2))
+        perturbation_bootstrap = np.median(stats) / 10        
+        
+    if (args.chip):
+        if n1 <= 70:
+            z_value = (p1 - p2) / np.sqrt(perturbation_bootstrap  / n2)
+        else:
+            z_value = (p1 - p2) / np.sqrt((control_bootstrap / n1) + (perturbation_bootstrap  / n2))
+    else:
+        z_value = (p1 - p2) / np.sqrt((control_bootstrap / n1) + (perturbation_bootstrap  / n2))
+        
     p_value = norm.sf(abs(z_value))*2
-    #p_values.append(p_value)
+    
+    # Get colors for MD plot based on p-value
     
     if p_value < (P_VALUE_CUTOFF / 10) and float(perturbation_mds[label]) > float(control_mds[label]):
         color = '#c64e50'
@@ -244,39 +252,39 @@ y_bound = max(np.abs(np.min(fold_change)), np.max(fold_change)) + 0.01
 plt.ylim(-1 * y_bound, y_bound)
 plt.savefig('%s/MA_%s_to_%s_md_score.png' % (args.output_dir, assay_1_prefix, assay_2_prefix), dpi=600)
 
-#if args.gen_barcode:
-# Generate barcodes for each relevant TF, for both conditions
-print('Generating barcode plots for significant motifs...')
-for relevant_tf in most_relevant_tfs:
-    plt.clf()
-    plt.title('Barcode plots for %s' % relevant_tf)
-    fig, (ax0, ax1) = plt.subplots(ncols=2)
-
-    control_bc_data = np.array(control_barcode[relevant_tf].split(';'))
-    # Condense the barcode to half the bins for prettier display
-    control_bc_data = control_bc_data.astype(int)
-    heat_m = np.nan * np.empty(shape=(int(HISTOGRAM_BINS/4), HISTOGRAM_BINS))
-    for row in range(int(HISTOGRAM_BINS/4)):
-        heat_m[row] = control_bc_data
-        ax0.matshow(heat_m, cmap=cm.YlGnBu)
-    ax0.axis('off')
-    ax0.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (control_nr_peaks[relevant_tf], control_mds[relevant_tf]), ha='center', size=18, zorder=0)
-    ax0.text(HISTOGRAM_BINS/2, -10, assay_1_prefix, ha='center', size=18, zorder=0)
-
-    perturbation_bc_data = np.array(perturbation_barcode[relevant_tf].split(';'))
-    perturbation_bc_data = perturbation_bc_data.astype(float)
-    heat_m = np.nan * np.empty(shape=(int(HISTOGRAM_BINS/4), HISTOGRAM_BINS))
-    for row in range(int(HISTOGRAM_BINS/4)):
-        heat_m[row] = perturbation_bc_data
-        ax1.matshow(heat_m, cmap=cm.YlGnBu)
-    ax1.axis('off')
-    ax1.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (perturbation_nr_peaks[relevant_tf], perturbation_mds[relevant_tf]), ha='center', size=18, zorder=0)
-    ax1.text(HISTOGRAM_BINS/2, -10, assay_2_prefix, ha='center', size=18, zorder=0)
-
-    plt.savefig('%s/%s_barcode_%s_vs_%s.png' % (args.output_dir, relevant_tf, assay_1_prefix, assay_2_prefix), dpi=600)
-
-print('All done --- ' + str(datetime.datetime.now()))
-sys.exit(0)
+if args.gen_barcode:
+    # Generate barcodes for each relevant TF, for both conditions
+    print('Generating barcode plots for significant motifs...')
+    for relevant_tf in most_relevant_tfs:
+        plt.clf()
+        plt.title('Barcode plots for %s' % relevant_tf)
+        fig, (ax0, ax1) = plt.subplots(ncols=2)
+    
+        control_bc_data = np.array(control_barcode[relevant_tf].split(';'))
+        # Condense the barcode to half the bins for prettier display
+        control_bc_data = control_bc_data.astype(int)
+        heat_m = np.nan * np.empty(shape=(int(HISTOGRAM_BINS/4), HISTOGRAM_BINS))
+        for row in range(int(HISTOGRAM_BINS/4)):
+            heat_m[row] = control_bc_data
+            ax0.matshow(heat_m, cmap=cm.YlGnBu)
+        ax0.axis('off')
+        ax0.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (control_nr_peaks[relevant_tf], control_mds[relevant_tf]), ha='center', size=18, zorder=0)
+        ax0.text(HISTOGRAM_BINS/2, -10, assay_1_prefix, ha='center', size=18, zorder=0)
+    
+        perturbation_bc_data = np.array(perturbation_barcode[relevant_tf].split(';'))
+        perturbation_bc_data = perturbation_bc_data.astype(float)
+        heat_m = np.nan * np.empty(shape=(int(HISTOGRAM_BINS/4), HISTOGRAM_BINS))
+        for row in range(int(HISTOGRAM_BINS/4)):
+            heat_m[row] = perturbation_bc_data
+            ax1.matshow(heat_m, cmap=cm.YlGnBu)
+        ax1.axis('off')
+        ax1.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (perturbation_nr_peaks[relevant_tf], perturbation_mds[relevant_tf]), ha='center', size=18, zorder=0)
+        ax1.text(HISTOGRAM_BINS/2, -10, assay_2_prefix, ha='center', size=18, zorder=0)
+    
+        plt.savefig('%s/%s_barcode_%s_vs_%s.png' % (args.output_dir, relevant_tf, assay_1_prefix, assay_2_prefix), dpi=600)
+    
+    print('All done --- ' + str(datetime.datetime.now()))
+    sys.exit(0)
 
 
 #if __name__=='__main__':
