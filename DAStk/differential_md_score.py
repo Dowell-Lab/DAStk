@@ -43,7 +43,7 @@ parser.add_argument('-o', '--output', dest='output_dir', \
 parser.add_argument('-t', '--threads', dest='threads', metavar='THREADS', \
                     help='Number of threads for multi-processing. Defaults to 1.', default=False, required=False)
 parser.add_argument('-c', '--chip', dest='chip', metavar='ChIP', \
-                    help='If the input is ChIP data, it may be useful to specify this flag as it will change the variance calulation because a large difference in sites between control and treatment will be expected.', default=1, required=False) 
+                    help='If the input is ChIP data, it may be useful to specify this flag as it will change the variance calulation because a large difference in sites between control and treatment will be expected.', default=False, required=False) 
 args = parser.parse_args()
 
 HISTOGRAM_BINS = 150
@@ -119,7 +119,7 @@ def get_differential_md_scores(label):
             a = np.var(train)
             stats.append(a)
         control_bootstrap = np.median(stats) / 10
-                      
+            
     for line in perturbation_barcode:
         perturbation_bc_array = np.array(perturbation_barcode[line].split(';'))
         perturbation_bc_boot = perturbation_bc_array.astype(int)
@@ -140,10 +140,24 @@ def get_differential_md_scores(label):
     if (args.chip):
         if n1 <= 70:
             z_value = (p1 - p2) / np.sqrt(perturbation_bootstrap  / n2)
+        elif n2 <= 70:
+            z_value = (p1 - p2) / np.sqrt(control_bootstrap  / n2)
+        elif (n1 <= 70) & (n2 <= 70):
+            z_value = (p1 - p2)
+            print('There were not enough regions to calculate the differential MDS for motif %s.' % label)
         else:
             z_value = (p1 - p2) / np.sqrt((control_bootstrap / n1) + (perturbation_bootstrap  / n2))
+            
     else:
-        z_value = (p1 - p2) / np.sqrt((control_bootstrap / n1) + (perturbation_bootstrap  / n2))
+        if n1 <=70:
+            z_value = (p1 - p2) / np.sqrt((perturbation_bootstrap  / n2) * 2)
+        elif n2 <= 70:
+            z_value = (p1 - p2) / np.sqrt((control_bootstrap  / n2) * 2)
+        elif (n1 <= 70) & (n2 <= 70):
+            z_value = (p1 - p2)
+            print('There were not enough regions to calculate the differential MDS for motif %s.' % label)
+        else:
+            z_value = (p1 - p2) / np.sqrt((control_bootstrap / n1) + (perturbation_bootstrap  / n2))
         
     p_value = norm.sf(abs(z_value))*2
     
