@@ -46,6 +46,7 @@ setup(
         'adjustText',
         'scipy',
         'pandas',
+        'pybedtools',
     ],
 
     entry_points={
