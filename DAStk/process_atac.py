@@ -59,9 +59,8 @@ def find_motifs_in_chrom(current_chrom, files):
     g_h = 0
     g_H = 0
     tf_distances = []
-    motif_seqs = []
     try:
-        motif_region = next(motif_iter)   # this gets the next motif in the list
+        motif_region = next(motif_iter)   # get the first motif in the list
     except StopIteration:
         print('No motifs for chromosome ' + current_chrom + ' on file ' + tf_motif_filename)
         return None
@@ -82,7 +81,7 @@ def find_motifs_in_chrom(current_chrom, files):
                             (last_motif.end - last_motif.start)/2
                 tf_distances.append(atac_median - tf_median)
                 try:
-                    motif_region = next(motif_iter)   # this gets the next motif in the list
+                    motif_region = next(motif_iter)   # get the next motif in the list
                 except StopIteration:
                     pass
                 last_motif = motif_region
@@ -104,7 +103,7 @@ def find_motifs_in_chrom(current_chrom, files):
             # if we still haven't shifted past this peak...
             if motif_region.start <= (atac_median + H):
                 try:
-                    motif_region = next(motif_iter)   # this gets the next motif in the list
+                    motif_region = next(motif_iter)   # get the next motif in the list
                 except StopIteration:
                     # No more TF motifs for this chromosome
                     break
@@ -138,15 +137,12 @@ def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename, genome):
 
     results_matching_motif = [x for x in results if x is not None]
     if len(results_matching_motif) > 0:
-        tf_distances = get_column(results_matching_motif, 0)
-        motif_seqs = get_column(results_matching_motif, 1)
         sums = np.sum(results_matching_motif, axis=0)
         overall_g_h = sums[1]
         overall_g_H = sums[2]
         overall_motif_sites = sums[3]
 
         # Calculate the heatmap for this motif's barcode
-
         tf_distances = reduce(lambda a, b: [*a, *b], [x[0] for x in results if x is not None])
         heatmap, xedges = np.histogram(tf_distances, bins=HISTOGRAM_BINS)
         str_heatmap = np.char.mod('%d', heatmap)
