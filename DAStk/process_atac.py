@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 plt.ioff()
 from functools import partial
 from operator import itemgetter
-from functools import reduce
+#from functools import reduce
 
 
 # returns ith column from the given matrix
@@ -142,7 +142,8 @@ def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename, genome):
         overall_motif_sites = sums[3]
 
         # Calculate the heatmap for this motif's barcode
-        tf_distances = reduce(lambda a, b: [*a, *b], [x[0] for x in results if x is not None])
+        #tf_distances = reduce(lambda a, b: [*a, *b], [x[0] for x in results if x is not None])
+        tf_distances = sums[0]
         heatmap, xedges = np.histogram(tf_distances, bins=HISTOGRAM_BINS)
         str_heatmap = np.char.mod('%d', heatmap)
         # TODO: Use the motif sequences to generate a logo for each motif, based
