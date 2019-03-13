@@ -12,12 +12,14 @@ import os.path
 import pandas as pd
 import sys
 import matplotlib as mpl
+import pybedtools
 # to prevent DISPLAY weirdness when running in the cluster:
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 plt.ioff()
 from functools import partial
 from operator import itemgetter
+from functools import reduce
 
 
 # returns ith column from the given matrix
@@ -87,6 +89,7 @@ def find_motifs_in_chrom(current_chrom, files):
                 if motif_region.start > (atac_median + H):
                     motifs_within_region = False
 
+        # Move to the next putative motif sites until we get one past our evaluation window
         while motifs_within_region:
             # account for those within the smaller window (h)
             if is_in_window(motif_region, atac_median, h):
@@ -97,7 +100,6 @@ def find_motifs_in_chrom(current_chrom, files):
                 tf_median = motif_region.start + (motif_region.end - \
                             motif_region.start)/2
                 tf_distances.append(atac_median - tf_median)
-                #motif_seqs.append(motif_region.sequence)
 
             # if we still haven't shifted past this peak...
             if motif_region.start <= (atac_median + H):
@@ -117,17 +119,16 @@ def find_motifs_in_chrom(current_chrom, files):
         except StopIteration:
             break
 
-    return [tf_distances, motif_seqs, g_h, g_H]
+    return [tf_distances, g_h, g_H, total_motif_sites]
 
 
-def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename):
-    HISTOGRAM_BINS = 100
-    # Smart way to make this organism-specific?
-    # We can pull this list from chromsoome sizes file -- MAG
-    CHROMOSOMES = ['chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr6', 'chr7', 'chr8', \
-                    'chr9', 'chr10', 'chr11', 'chr12', 'chr13', 'chr14', 'chr15', \
-                    'chr16', 'chr17', 'chr18', 'chr19', 'chr20', 'chr21', 'chr22', \
-                    'chrX', 'chrY']
+def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename, genome):
+    #Get chromosomes for mutliprocessing
+    chr_size_file = pybedtools.chromsizes(genome)
+    unique_chr = list(chr_size_file.keys())[0:]
+    CHROMOSOMES = [word for word in unique_chr if len(word) <= 6]
+
+    HISTOGRAM_BINS = 150
     pool = multiprocessing.Pool(mp_threads)
     results = pool.map(partial( find_motifs_in_chrom, \
                                 files=[tf_motif_filename, atac_peaks_filename]), \
@@ -140,23 +141,24 @@ def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename):
         tf_distances = get_column(results_matching_motif, 0)
         motif_seqs = get_column(results_matching_motif, 1)
         sums = np.sum(results_matching_motif, axis=0)
-        overall_g_h = sums[2]
-        overall_g_H = sums[3]
+        overall_g_h = sums[1]
+        overall_g_H = sums[2]
+        overall_motif_sites = sums[3]
 
         # Calculate the heatmap for this motif's barcode
-        tf_distances = results[0][0]
+
+        tf_distances = reduce(lambda a, b: [*a, *b], [x[0] for x in results if x is not None])
         heatmap, xedges = np.histogram(tf_distances, bins=HISTOGRAM_BINS)
         str_heatmap = np.char.mod('%d', heatmap)
         # TODO: Use the motif sequences to generate a logo for each motif, based
         #       only on the overlapping ATAC-Seq peaks
         if overall_g_H >= 0:
-            return [float(overall_g_h + .1)/(overall_g_H + 1), \
-                    (overall_g_h + .1), \
+            return [float(overall_g_h + 1)/(overall_g_H + 1), \
+                    (overall_g_h + 1), \
                     (overall_g_H + 1), \
                     ';'.join(str_heatmap)]
     else:
         return None
-
 
 def main():
     parser = argparse.ArgumentParser(description='This script analyzes ATAC-Seq and GRO-Seq data and produces various plots for further data analysis.', epilog='IMPORTANT: Please ensure that ALL bed files used with this script are sorted by the same criteria.')
@@ -166,6 +168,9 @@ def main():
     parser.add_argument('-m', '--motif-path', dest='tf_motif_path', \
                         help='Path to the location of the motif sites for the desired reference genome (i.e., "/usr/local/motifs/human/hg19/*").', \
                         default='', required=True)
+    parser.add_argument('-g', '--genome', dest='genome', \
+                        help='Genome to which the organism is mapped (e.g. hg38, mm10)', \
+                        default='hg38', required=True)
     parser.add_argument('-t', '--threads', dest='mp_threads', \
                         help='Number of CPUs to use for multiprocessing of MD-score calculations. Depends on your hardware architecture.', \
                         default='1', required=False)
@@ -224,7 +229,7 @@ def main():
         filename_no_path = filename.split('/')[-1]
         if os.path.getsize(filename) > 0 and \
            os.path.basename(filename).endswith(tuple(['.bed', '.BedGraph', '.txt'])):
-            [md_score, small_window, large_window, heat] = get_md_score(filename, int(args.mp_threads), args.atac_peaks_filename)
+            [md_score, small_window, large_window, motif_site_count, heat] = get_md_score(filename, int(args.mp_threads), args.atac_peaks_filename, args.genome)
             print('The MD-score for ATAC reads vs %s is %.6f' % (filename_no_path, md_score))
             motif_stats.append({ 'motif_file': filename_no_path, \
                                  'md_score': md_score, \
