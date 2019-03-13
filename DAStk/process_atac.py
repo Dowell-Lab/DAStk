@@ -5,7 +5,6 @@ import argparse
 import csv
 import datetime
 import glob
-import imp
 import multiprocessing
 import numpy as np
 import os.path
