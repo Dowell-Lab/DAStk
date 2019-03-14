@@ -142,16 +142,16 @@ def get_differential_md_scores(diff_params):
 
     # Get colors for MD plot based on p-value
 
-    if p_value < (P_VALUE_CUTOFF / 10) and float(perturbation_mds[label]) > float(control_mds[label]):
+    if p_value < (P_VALUE_CUTOFF / 10) and p2 > p1:
         color = '#c64e50'
         size = 70
-    elif p_value < P_VALUE_CUTOFF and float(perturbation_mds[label]) > float(control_mds[label]):
+    elif p_value < P_VALUE_CUTOFF and p2 > p1:
         color = 'maroon'
         size = 70
-    elif p_value < (P_VALUE_CUTOFF / 10) and float(perturbation_mds[label]) < float(control_mds[label]):
+    elif p_value < (P_VALUE_CUTOFF / 10) and p2 < p1:
         color = 'darkviolet'
         size = 70
-    elif p_value < P_VALUE_CUTOFF and float(perturbation_mds[label]) < float(control_mds[label]):
+    elif p_value < P_VALUE_CUTOFF and p2 < p1:
         color = 'purple'
         size = 70
     else:
