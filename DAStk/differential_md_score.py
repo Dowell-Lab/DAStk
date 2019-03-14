@@ -26,15 +26,20 @@ import concurrent.futures
 # $ python differential_md_score.py -1 control -2 tamoxifen -p 0.000000000001 -o /outdir
 #
 
-def get_differential_md_scores(label):
-    control = float(control_mds[label])
-    perturbation = float(perturbation_mds[label])
-    nr_peaks = np.log2(float(control_nr_peaks[label]) + float(perturbation_nr_peaks[label]))
-    fold_change = float(perturbation_mds[label]) - float(control_mds[label])
-    p1 = float(control_mds[label])
-    p2 = float(perturbation_mds[label])
-    n1 = float(control_nr_peaks[label])
-    n2 = float(perturbation_nr_peaks[label])
+def get_differential_md_scores(diff_params):
+    (label, p1, p2, n1, n2) = diff_params
+    control = p1
+    perturbation = p2
+    nr_peaks = np.log2(n1 + n2)
+    fold_change = p2 - p1
+#    control = float(control_mds[label])
+#    perturbation = float(perturbation_mds[label])
+#    nr_peaks = np.log2(float(control_nr_peaks[label]) + float(perturbation_nr_peaks[label]))
+#    fold_change = float(perturbation_mds[label]) - float(control_mds[label])
+#    p1 = float(control_mds[label])
+#    p2 = float(perturbation_mds[label])
+#    n1 = float(control_nr_peaks[label])
+#    n2 = float(perturbation_nr_peaks[label])
     #p1 = .1
     #p2 = .67
     #n1 = 10
@@ -203,7 +208,10 @@ def main():
 
 
     with concurrent.futures.ProcessPoolExecutor(threads) as executor:
-        jobs = [executor.submit(get_differential_md_scores, label)
+        jobs = [executor.submit(get_differential_md_scores, 
+                                [label, float(control_mds[label]), float(perturbation_mds[label]), \
+                                float(control_nr_peaks[label]), float(perturbation_nr_peaks[label])]
+                               )
                 for label in labels]
         differential_results = [r.result() for r in jobs]
 

@@ -57,6 +57,7 @@ def find_motifs_in_chrom(current_chrom, files):
     last_motif = None
     g_h = 0
     g_H = 0
+    total_motif_sites = 0
     tf_distances = []
     try:
         motif_region = next(motif_iter)   # get the first motif in the list
@@ -81,6 +82,7 @@ def find_motifs_in_chrom(current_chrom, files):
                 tf_distances.append(atac_median - tf_median)
                 try:
                     motif_region = next(motif_iter)   # get the next motif in the list
+                    total_motif_sites += 1
                 except StopIteration:
                     pass
                 last_motif = motif_region
@@ -89,6 +91,7 @@ def find_motifs_in_chrom(current_chrom, files):
 
         # Move to the next putative motif sites until we get one past our evaluation window
         while motifs_within_region:
+            total_motif_sites += 1
             # account for those within the smaller window (h)
             if is_in_window(motif_region, atac_median, h):
                 g_h = g_h + 1
@@ -103,6 +106,7 @@ def find_motifs_in_chrom(current_chrom, files):
             if motif_region.start <= (atac_median + H):
                 try:
                     motif_region = next(motif_iter)   # get the next motif in the list
+                    total_motif_sites += 1
                 except StopIteration:
                     # No more TF motifs for this chromosome
                     break
@@ -152,6 +156,7 @@ def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename, genome):
             return [float(overall_g_h + 1)/(overall_g_H + 1), \
                     (overall_g_h + 1), \
                     (overall_g_H + 1), \
+                    (overall_motif_sites + 1), \
                     ';'.join(str_heatmap)]
     else:
         return None
@@ -231,6 +236,7 @@ def main():
                                  'md_score': md_score, \
                                  'small_window': small_window, \
                                  'large_window': large_window, \
+                                 'motif_site_count': motif_site_count, \
                                  'heat': heat })
 
     # sort the stats dictionary by MD-score, descending order
@@ -238,9 +244,9 @@ def main():
 
     md_score_fp = open("%s/%s_md_scores.txt" % (args.output_dir, output_prefix), 'w')
     for stat in sorted_motif_stats:
-        md_score_fp.write("%s,%s,%s,%s,%s\n" % \
+        md_score_fp.write("%s,%s,%s,%s,%s,%s\n" % \
                           (stat['motif_file'], stat['md_score'], stat['small_window'], \
-                           stat['large_window'], stat['heat']))
+                           stat['large_window'], stat['motif_site_count'], stat['heat']))
     md_score_fp.close()
 
     print('All done --- %s' % str(datetime.datetime.now()))
