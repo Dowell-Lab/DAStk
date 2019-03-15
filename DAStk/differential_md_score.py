@@ -26,38 +26,9 @@ import concurrent.futures
 # $ python differential_md_score.py -1 control -2 tamoxifen -p 0.000000000001 -o /outdir
 #
 
-parser = argparse.ArgumentParser(description='This script produces an MA plot of TFs from ATAC-Seq data, for DMSO vs. treatment conditions.', \
-    epilog="IMPORTANT: Please ensure that ALL files used with this script are sorted by the same criteria.\n\nExample:\nFor your files:\n     * mcf7_DMSO_md_scores.txt\n     * mcf7_Nutlin_md_scores.txt\n... you can use the following arguments to generate an MA plot with barcodes at a p-value cutoff of 1e-4:\n\n$ python differential_md_score.py -x mcf7 -1 DMSO -2 Nutlin -p 0.0001 -b\n\n", formatter_class=RawTextHelpFormatter)
-parser.add_argument('-p', '--p-value', dest='p_value', metavar='P_VALUE', \
-                    help='p-value cutoff to define which motifs to label in the MA plot. Defaults to 0.00001.', default=0.00001, required=False)
-parser.add_argument('-1', '--assay-1', dest='assay_1', metavar='ASSAY_1', \
-                    help='Control file generated from process_atac ending in the extension "md_scores.txt" (e.g. "DMSO", "control", "wildtype").', required=True)
-parser.add_argument('-2', '--assay-2', dest='assay_2', metavar='ASSAY_2', \
-                    help='Perturbation file generated from process_atac ending in the extension "md_scores.txt" (e.g., "doxycyclin", "p53_knockout").', required=True)
-parser.add_argument('-m', '--label-1', dest='label_1', metavar='LABEL_1', \
-                    help='Label for the MA plot title corresponding to assay 1', required=False)
-parser.add_argument('-n', '--label-2', dest='label_2', metavar='LABEL_2', \
-                    help='Label for the MA plot title corresponding to assay 2', required=False)
-parser.add_argument('-b', '--barcodes', dest='gen_barcode', action='store_true', \
-                    help='Generate a barcode plot for each significant motif', default=False, required=False)
-parser.add_argument('-o', '--output', dest='output_dir', \
-                    help='Path to where output files will be saved.', \
-                    default='', required=True)
-parser.add_argument('-t', '--threads', dest='threads', metavar='THREADS', \
-                    help='Number of threads for multi-processing. Defaults to 1.', default=1, required=False)
-parser.add_argument('-c', '--chip', dest='chip', metavar='ChIP', \
-                    help='If the input is ChIP data, it may be useful to specify this flag as it will change the variance calulation because a large difference in sites between control and treatment will be expected.', default=False, required=False)
-args = parser.parse_args()
-
-HISTOGRAM_BINS = 150
-P_VALUE_CUTOFF = float(args.p_value)
-assay_1_prefix = os.path.splitext(os.path.basename(args.assay_1))[0]
-assay_2_prefix = os.path.splitext(os.path.basename(args.assay_2))[0]
-threads = int(args.threads)
-
 
 def get_differential_md_scores(diff_params):
-    (label, p1, p2, n1, n2, control_barcode, perturbation_barcode) = diff_params
+    (label, p1, p2, n1, n2, control_barcode, perturbation_barcode, is_chip, pval_cutoff) = diff_params
     control = p1
     perturbation = p2
     nr_peaks = np.log2(n1 + n2)
@@ -100,7 +71,7 @@ def get_differential_md_scores(diff_params):
             stats.append(a)
         perturbation_bootstrap = abs(np.log(np.median(stats))) / 10
 
-    if (args.chip):
+    if (is_chip):
         if (n1 <= 70) & (n2 > 70):
             z_value = (p1 - p2) / np.sqrt(perturbation_bootstrap  / n2)
         elif (n2 <= 70) & (n1 > 70):
@@ -132,16 +103,16 @@ def get_differential_md_scores(diff_params):
 
     # Get colors for MD plot based on p-value
 
-    if p_value < (P_VALUE_CUTOFF / 10) and p2 > p1:
+    if p_value < (pval_cutoff / 10) and p2 > p1:
         color = '#c64e50'
         size = 70
-    elif p_value < P_VALUE_CUTOFF and p2 > p1:
+    elif p_value < pval_cutoff and p2 > p1:
         color = 'maroon'
         size = 70
-    elif p_value < (P_VALUE_CUTOFF / 10) and p2 < p1:
+    elif p_value < (pval_cutoff / 10) and p2 < p1:
         color = 'darkviolet'
         size = 70
-    elif p_value < P_VALUE_CUTOFF and p2 < p1:
+    elif p_value < pval_cutoff and p2 < p1:
         color = 'purple'
         size = 70
     else:
@@ -167,6 +138,34 @@ def get_differential_md_scores(diff_params):
 
 
 def main():
+    parser = argparse.ArgumentParser(description='This script produces an MA plot of TFs from ATAC-Seq data, for DMSO vs. treatment conditions.', \
+        epilog="IMPORTANT: Please ensure that ALL files used with this script are sorted by the same criteria.\n\nExample:\nFor your files:\n     * mcf7_DMSO_md_scores.txt\n     * mcf7_Nutlin_md_scores.txt\n... you can use the following arguments to generate an MA plot with barcodes at a p-value cutoff of 1e-4:\n\n$ python differential_md_score.py -x mcf7 -1 DMSO -2 Nutlin -p 0.0001 -b\n\n", formatter_class=RawTextHelpFormatter)
+    parser.add_argument('-p', '--p-value', dest='p_value', metavar='P_VALUE', \
+                        help='p-value cutoff to define which motifs to label in the MA plot. Defaults to 0.00001.', default=0.00001, required=False)
+    parser.add_argument('-1', '--assay-1', dest='assay_1', metavar='ASSAY_1', \
+                        help='Control file generated from process_atac ending in the extension "md_scores.txt" (e.g. "DMSO", "control", "wildtype").', required=True)
+    parser.add_argument('-2', '--assay-2', dest='assay_2', metavar='ASSAY_2', \
+                        help='Perturbation file generated from process_atac ending in the extension "md_scores.txt" (e.g., "doxycyclin", "p53_knockout").', required=True)
+    parser.add_argument('-m', '--label-1', dest='label_1', metavar='LABEL_1', \
+                        help='Label for the MA plot title corresponding to assay 1', required=False)
+    parser.add_argument('-n', '--label-2', dest='label_2', metavar='LABEL_2', \
+                        help='Label for the MA plot title corresponding to assay 2', required=False)
+    parser.add_argument('-b', '--barcodes', dest='gen_barcode', action='store_true', \
+                        help='Generate a barcode plot for each significant motif', default=False, required=False)
+    parser.add_argument('-o', '--output', dest='output_dir', \
+                        help='Path to where output files will be saved.', \
+                        default='', required=True)
+    parser.add_argument('-t', '--threads', dest='threads', metavar='THREADS', \
+                        help='Number of threads for multi-processing. Defaults to 1.', default=1, required=False)
+    parser.add_argument('-c', '--chip', dest='chip', metavar='ChIP', \
+                        help='If the input is ChIP data, it may be useful to specify this flag as it will change the variance calulation because a large difference in sites between control and treatment will be expected.', default=False, required=False)
+    args = parser.parse_args()
+
+    HISTOGRAM_BINS = 150
+    assay_1_prefix = os.path.splitext(os.path.basename(args.assay_1))[0]
+    assay_2_prefix = os.path.splitext(os.path.basename(args.assay_2))[0]
+    P_VALUE_CUTOFF = float(args.p_value)
+    threads = int(args.threads)
 
     print('Starting --- ' + str(datetime.datetime.now()))
 
@@ -201,9 +200,15 @@ def main():
 
     with concurrent.futures.ProcessPoolExecutor(threads) as executor:
         jobs = [executor.submit(get_differential_md_scores, 
-                                [label, float(control_mds[label]), float(perturbation_mds[label]), \
-                                float(control_nr_peaks[label]), float(perturbation_nr_peaks[label]), \
-                                control_barcodes[label], perturbation_barcodes[label]]
+                                [   label, 
+                                    float(control_mds[label]), \
+                                    float(perturbation_mds[label]), \
+                                    float(control_nr_peaks[label]), \
+                                    float(perturbation_nr_peaks[label]), \
+                                    control_barcodes[label], \
+                                    perturbation_barcodes[label], \
+                                    args.chip, \
+                                    P_VALUE_CUTOFF ]
                                )
                 for label in labels]
         differential_results = [r.result() for r in jobs]
