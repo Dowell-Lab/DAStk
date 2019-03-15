@@ -20,7 +20,7 @@ This is the simplest option, and it will also create the executable commands `pr
 
     $ git clone https://biof-git.colorado.edu/dowelllab/DAStk
 
-### Required Python libraries (can be installed thru `pip`):
+### Required Python libraries (automatically taken care of if installed thru `pip`):
 
 * numpy
 * argparse
