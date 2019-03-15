@@ -64,6 +64,7 @@ Unpack the motif files (see below for how to create your own, instead):
 Calculate the MD-scores for the first biological condition:
 
     $ process_atac --threads 8 --atac-peaks /path/to/DMSO/ATAC/peaks/file \
+      --genome hg38 \
       --motif-path /path/to/directory/containing/motif/files \
       --output /path/to/output/directory
 
@@ -72,6 +73,7 @@ The above command generates a file called `BASENAME_md_scores.txt`. It's general
 We would then generate the same file, for the other biological condition we are comparing against:
 
     $ process_atac --threads 8 --atac-peaks /path/to/treatment/ATAC/peaks/file \
+      --genome hg38 \
       --motif-path /path/to/directory/containing/motif/files \
       --output /path/to/output/directory
 
