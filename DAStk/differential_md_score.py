@@ -282,6 +282,7 @@ def main():
     if args.gen_barcode:
         # Generate barcodes for each relevant TF, for both conditions
         print('Generating barcode plots for significant motifs...')
+        np.seterr(invalid='ignore')
         for relevant_tf in most_relevant_tfs:
             plt.clf()
             plt.title('Barcode plots for %s' % relevant_tf)
@@ -296,7 +297,7 @@ def main():
                 ax0.matshow(heat_m, cmap=cm.YlGnBu)
             ax0.axis('off')
             ax0.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (control_nr_peaks[relevant_tf], control_mds[relevant_tf]), ha='center', size=18, zorder=0)
-            ax0.text(HISTOGRAM_BINS/2, -10, assay_1_prefix, ha='center', size=18, zorder=0)
+            ax0.text(HISTOGRAM_BINS/2, -10, label_1_str, ha='center', size=18, zorder=0)
 
             perturbation_bc_data = np.array(perturbation_barcodes[relevant_tf].split(';'))
             perturbation_bc_data = perturbation_bc_data.astype(float)
@@ -306,8 +307,9 @@ def main():
                 ax1.matshow(heat_m, cmap=cm.YlGnBu)
             ax1.axis('off')
             ax1.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (perturbation_nr_peaks[relevant_tf], perturbation_mds[relevant_tf]), ha='center', size=18, zorder=0)
-            ax1.text(HISTOGRAM_BINS/2, -10, assay_2_prefix, ha='center', size=18, zorder=0)
+            ax1.text(HISTOGRAM_BINS/2, -10, label_2_str, ha='center', size=18, zorder=0)
 
+            plt.tight_layout()
             plt.savefig('%s/%s_barcode_%s_vs_%s.png' % (args.output_dir, relevant_tf, assay_1_prefix, assay_2_prefix), dpi=600)
 
         print('All done --- ' + str(datetime.datetime.now()))
