@@ -1,6 +1,6 @@
 # DAStk
 
-The Differential [ATAC-seq](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4374986/) Toolkit (DAStk) is a set of command-line tools to aid analyzing differential ATAC-seq data. By leveraging changes in accessible chromatin, we can detect significant changes in transcription factor (TF) activity. This is a simple but powerful tool for cellular perturbation analysis. In fact, the applications of DAStk are not necessarily limited to ATAC-seq, but can extend to comparing any pair of bedGraphs containing regions of interest, like transcription regulatory elements (TRE) from nascent transcription assays like PRO-seq, or others like ChIP-seq peaks.
+The Differential [ATAC-seq](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4374986/) Toolkit (DAStk) is a set of command-line tools to aid analyzing differential ATAC-seq data. By leveraging changes in accessible chromatin, we can detect significant changes in transcription factor (TF) activity. This is a simple but powerful tool for cellular perturbation analysis. In fact, the applications of DAStk are not necessarily limited to ATAC-seq, but can extend to comparing any pair of bedGraphs containing regions of interest, e.g. transcription regulatory elements (TRE) from nascent transcription assays like PRO-seq, or others like ChIP-seq peaks.
 
 
 You will need the following inputs:
@@ -118,7 +118,7 @@ For any questions or bug reports, please use the Issue Tracker or email us:
 *Computer Science Department, BioFrontiers Institute*  
 *University of Colorado, Boulder, USA*
 
-*Margaret Gruca (margaret.gruca at colorado.edu)*
+*Margaret Gruca (margaret.gruca at colorado.edu)*  
 *BioFrontiers Institute*  
 *University of Colorado, Boulder, USA*
 
