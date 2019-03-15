@@ -31,9 +31,9 @@ parser = argparse.ArgumentParser(description='This script produces an MA plot of
 parser.add_argument('-p', '--p-value', dest='p_value', metavar='P_VALUE', \
                     help='p-value cutoff to define which motifs to label in the MA plot. Defaults to 0.00001.', default=0.00001, required=False)
 parser.add_argument('-1', '--assay-1', dest='assay_1', metavar='ASSAY_1', \
-                    help='Conditions label for the reference/control assay of the differential pair (e.g. "DMSO", "control", "wildtype"). This will be the rootname before _md_scores.txt generated from process_atac. Used to find the proper file with the calculated MD-scores and on the plot labels.', required=True)
+                    help='Control file generated from process_atac ending in the extension "md_scores.txt" (e.g. "DMSO", "control", "wildtype").', required=True)
 parser.add_argument('-2', '--assay-2', dest='assay_2', metavar='ASSAY_2', \
-                    help='Conditions label for the perturbation assay of the differential pair (e.g., "doxycyclin", "p53_knockout"). This will be the rootname before _md_scores.txt generated from process_atac. Used to find the proper file with the calculated MD-scores and on the plot labels.', required=True)
+                    help='Perturbation file generated from process_atac ending in the extension "md_scores.txt" (e.g., "doxycyclin", "p53_knockout").', required=True)
 parser.add_argument('-m', '--label-1', dest='label_1', metavar='LABEL_1', \
                     help='Label for the MA plot title corresponding to assay 1', required=False)
 parser.add_argument('-n', '--label-2', dest='label_2', metavar='LABEL_2', \
@@ -62,34 +62,20 @@ def get_differential_md_scores(diff_params):
     perturbation = p2
     nr_peaks = np.log2(n1 + n2)
     fold_change = p2 - p1
-#    control = float(control_mds[label])
-#    perturbation = float(perturbation_mds[label])
-#    nr_peaks = np.log2(float(control_nr_peaks[label]) + float(perturbation_nr_peaks[label]))
-#    fold_change = float(perturbation_mds[label]) - float(control_mds[label])
-#    p1 = float(control_mds[label])
-#    p2 = float(perturbation_mds[label])
-#    n1 = float(control_nr_peaks[label])
-#    n2 = float(perturbation_nr_peaks[label])
-    #p1 = .1
-    #p2 = .67
-    #n1 = 10
-    #n2 = 13000
+    perturbation_bc_array = np.array(perturbation_barcode.split(';'))
+    control_bc_array = np.array(control_barcode.split(';'))
+
     if n1 <= 70:
-         #print('%s had an MD-score of 0 in %s' % (label, args.assay_1))
         p1 = .1
     if n2 <= 70:
-         #print('%s had an MD-score of 0 in %s' % (label, args.assay_2))
         p2 = .1
 
-    for line in control_barcode:
-        control_bc_array = np.array(control_barcode[line].split(';'))
+    if n1 > 70:
         control_bc_boot = control_bc_array.astype(int)
-        #print(control_bc_boot)
-
         # configure bootstrap
         values = control_bc_boot
-        control_n_iterations = 599
-        control_n_size = int(len(control_bc_boot) * 0.1)
+        control_n_iterations = 1099
+        control_n_size = int(len(control_bc_boot) * 0.5)
         # run bootstrap
         stats = list()
         for i in range(control_n_iterations):
@@ -97,16 +83,14 @@ def get_differential_md_scores(diff_params):
             train = resample(values, n_samples=control_n_size, replace=True)
             a = np.var(train)
             stats.append(a)
-        control_bootstrap = np.median(stats) / 10
+        control_bootstrap = abs(np.log(np.median(stats))) / 10
 
-    for line in perturbation_barcode:
-        perturbation_bc_array = np.array(perturbation_barcode[line].split(';'))
+    if n2 > 70:
         perturbation_bc_boot = perturbation_bc_array.astype(int)
-
         # configure bootstrap
         values = perturbation_bc_boot
-        perturbation_n_iterations = 599
-        perturbation_n_size = int(len(perturbation_bc_boot) * 0.1)
+        perturbation_n_iterations = 1099
+        perturbation_n_size = int(len(perturbation_bc_boot) * 0.5)
         # run bootstrap
         stats = list()
         for i in range(perturbation_n_iterations):
@@ -114,12 +98,12 @@ def get_differential_md_scores(diff_params):
             train = resample(values, n_samples=perturbation_n_size, replace=True)
             a = np.var(train)
             stats.append(a)
-        perturbation_bootstrap = np.median(stats) / 10
+        perturbation_bootstrap = abs(np.log(np.median(stats))) / 10
 
     if (args.chip):
-        if n1 <= 70:
+        if (n1 <= 70) & (n2 > 70):
             z_value = (p1 - p2) / np.sqrt(perturbation_bootstrap  / n2)
-        elif n2 <= 70:
+        elif (n2 <= 70) & (n1 > 70):
             z_value = (p1 - p2) / np.sqrt(control_bootstrap  / n2)
         elif (n1 <= 70) & (n2 <= 70):
             z_value = (p1 - p2)
@@ -128,10 +112,16 @@ def get_differential_md_scores(diff_params):
             z_value = (p1 - p2) / np.sqrt((control_bootstrap / n1) + (perturbation_bootstrap  / n2))
 
     else:
-        if n1 <=70:
-            z_value = (p1 - p2) / np.sqrt((perturbation_bootstrap  / n2) * 2)
-        elif n2 <= 70:
-            z_value = (p1 - p2) / np.sqrt((control_bootstrap  / n2) * 2)
+        if (n1 <= 70) & (n2 > 70):
+            x1 = p1 * n1
+            x2 = p2 * n2
+            pooled = (x1 + x2)/(n1 + n2)
+            z_value = (p1 - p2) / np.sqrt(pooled * (1 - pooled) * ((1/n1) + (1/n2)))
+        elif (n2 <= 70) & (n1 > 70):
+            x1 = p1 * n1
+            x2 = p2 * n2
+            pooled = (x1 + x2)/(n1 + n2)
+            z_value = (p1 - p2) / np.sqrt(pooled * (1 - pooled) * ((1/n1) + (1/n2)))
         elif (n1 <= 70) & (n2 <= 70):
             z_value = (p1 - p2)
             print('There were not enough regions to calculate the differential MDS for motif %s.' % label)
@@ -182,7 +172,7 @@ def main():
 
     control_mds = {}
     control_nr_peaks = {}
-    control_barcode = {}
+    control_barcodes = {}
     control_total_motifs = {}
     labels = []
     control_fd = open('%s' % args.assay_1)
@@ -193,10 +183,10 @@ def main():
             labels.append(line_chunks[0][:-4])
             control_nr_peaks[line_chunks[0][:-4]] = round(float(line_chunks[3]))
             control_total_motifs[line_chunks[0][:-4]] = int(line_chunks[4])
-            control_barcode[line_chunks[0][:-4]] = line_chunks[5]
+            control_barcodes[line_chunks[0][:-4]] = line_chunks[5]
     perturbation_mds = {}
     perturbation_nr_peaks = {}
-    perturbation_barcode = {}
+    perturbation_barcodes = {}
     perturbation_total_motifs = {}
     perturbation_fd = open('%s' % args.assay_2)
     for line in perturbation_fd:
@@ -206,19 +196,17 @@ def main():
             perturbation_mds[line_chunks[0][:-4]] = float(line_chunks[1])
             perturbation_nr_peaks[line_chunks[0][:-4]] = round(float(line_chunks[3]))
             perturbation_total_motifs[line_chunks[0][:-4]] = int(line_chunks[4])
-            perturbation_barcode[line_chunks[0][:-4]] = line_chunks[5]
+            perturbation_barcodes[line_chunks[0][:-4]] = line_chunks[5]
 
 
     with concurrent.futures.ProcessPoolExecutor(threads) as executor:
         jobs = [executor.submit(get_differential_md_scores, 
                                 [label, float(control_mds[label]), float(perturbation_mds[label]), \
                                 float(control_nr_peaks[label]), float(perturbation_nr_peaks[label]), \
-                                control_barcode, perturbation_barcode]
+                                control_barcodes[label], perturbation_barcodes[label]]
                                )
                 for label in labels]
         differential_results = [r.result() for r in jobs]
-
-    #print(differential_results)
 
     sorted_differential_stats = sorted(differential_results, key=itemgetter('p_value'))
 
@@ -250,8 +238,6 @@ def main():
 
     for x, y, text, p_value in zip(nr_peaks, fold_change, np_labels, p_values):
         if p_value < P_VALUE_CUTOFF:
-            #print(y)
-        #if (y > 0.02 or y < -0.02) and x > 12:
             print('%s (%.3f, p-value = %.2E)' % (text, y, p_value))
             label_color = 'maroon'
             if p_value < (P_VALUE_CUTOFF/10):
@@ -296,7 +282,7 @@ def main():
             plt.title('Barcode plots for %s' % relevant_tf)
             fig, (ax0, ax1) = plt.subplots(ncols=2)
 
-            control_bc_data = np.array(control_barcode[relevant_tf].split(';'))
+            control_bc_data = np.array(control_barcodes[relevant_tf].split(';'))
             # Condense the barcode to half the bins for prettier display
             control_bc_data = control_bc_data.astype(int)
             heat_m = np.nan * np.empty(shape=(int(HISTOGRAM_BINS/4), HISTOGRAM_BINS))
@@ -307,7 +293,7 @@ def main():
             ax0.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (control_nr_peaks[relevant_tf], control_mds[relevant_tf]), ha='center', size=18, zorder=0)
             ax0.text(HISTOGRAM_BINS/2, -10, assay_1_prefix, ha='center', size=18, zorder=0)
 
-            perturbation_bc_data = np.array(perturbation_barcode[relevant_tf].split(';'))
+            perturbation_bc_data = np.array(perturbation_barcodes[relevant_tf].split(';'))
             perturbation_bc_data = perturbation_bc_data.astype(float)
             heat_m = np.nan * np.empty(shape=(int(HISTOGRAM_BINS/4), HISTOGRAM_BINS))
             for row in range(int(HISTOGRAM_BINS/4)):
