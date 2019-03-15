@@ -285,8 +285,8 @@ def main():
         np.seterr(invalid='ignore')
         for relevant_tf in most_relevant_tfs:
             plt.clf()
-            plt.title('Barcode plots for %s' % relevant_tf)
             fig, (ax0, ax1) = plt.subplots(ncols=2)
+            fig.suptitle('Barcode plots for %s' % relevant_tf)
 
             control_bc_data = np.array(control_barcodes[relevant_tf].split(';'))
             # Condense the barcode to half the bins for prettier display
