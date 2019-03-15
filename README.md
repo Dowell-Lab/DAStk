@@ -81,7 +81,7 @@ The above generates a file called `BASENAME_md_scores.txt`. Finally:
 
     $ differential_md_score --assay-1 DMSO --assay-2 Treatment --p-value 0.0000001 --barcodes --output /path/to/output/directory
 
-The above generates a tab-delimited file with all differential MD scores for each motif and their p-values (sorted by p-value), an MA plot that labels the most significant TF activity changes, at a p-value cutoff of 1e-7. Note that better plot-friendly condition names (say, DMSO and Treatment) can be provided using the `--label-1` and `--label-2` arguments. The plots look like the example below:
+The above generates a tab-delimited file with all differential MD scores for each motif and their p-values (sorted by p-value), an MA plot that labels the most significant TF activity changes, at a p-value cutoff of 1e-7. Note that better plot-friendly condition names (say, "DMSO" and "Treatment") can be provided using the `--label-1` and `--label-2` arguments. The plots look like the example below:
 
 ![Sample MA plot](./doc_files/sample_MA_plot.png)
 
@@ -90,6 +90,12 @@ The `-b` flag also generates a "barcode plot" of each of these statistically sig
 ![Sample barcode plot](./doc_files/sample_barcode_plot.png)
 
 If you can take advantage of multiprocessing, you can calculate MD-scores for both conditions simultaneously, assigning several threads to each, then generate the plots once both `*_md_scores.txt` files are ready.
+
+The columns for the tab-separated output file from `differential_md_score` are:
+
+    Motif name , p-value , # peaks in condition 1 , # peaks in condition 2 , MD-score in condition 1 , MD-score in condition 2
+
+
 
 
 ### Motif Files
