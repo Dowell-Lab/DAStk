@@ -157,7 +157,7 @@ def main():
                         default='', required=True)
     parser.add_argument('-t', '--threads', dest='threads', metavar='THREADS', \
                         help='Number of threads for multi-processing. Defaults to 1.', default=1, required=False)
-    parser.add_argument('-c', '--chip', dest='chip', metavar='ChIP', \
+    parser.add_argument('-c', '--chip', dest='chip', action='store_true', \
                         help='If the input is ChIP data, it may be useful to specify this flag as it will change the variance calulation because a large difference in sites between control and treatment will be expected.', default=False, required=False)
     args = parser.parse_args()
 
