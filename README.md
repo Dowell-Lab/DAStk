@@ -15,10 +15,14 @@ You will need the following inputs:
 You can install DAStk using `pip`:
 
     $ pip install DAStk
+    
+... or:
+
+    $ pip install --upgrade DAStk 
 
 This is the simplest option, and it will also create the executable commands `process_atac` and `differential_md_score`. Alternatively, you can clone this repository by running:
 
-    $ git clone https://biof-git.colorado.edu/dowelllab/DAStk
+    $ git clone git@github.com:Dowell-Lab/DAStk.git
 
 ### Required Python libraries (automatically taken care of if installed thru `pip`):
 
