@@ -73,9 +73,9 @@ def get_differential_md_scores(diff_params):
 
     if (is_chip):
         if (n1 <= 70) & (n2 > 70):
-            z_value = (p1 - p2) / np.sqrt(perturbation_bootstrap  / n2)
+            z_value = (p1 - p2) / np.sqrt(perturbation_bootstrap / n2)
         elif (n2 <= 70) & (n1 > 70):
-            z_value = (p1 - p2) / np.sqrt(control_bootstrap  / n2)
+            z_value = (p1 - p2) / np.sqrt(control_bootstrap / n1)
         elif (n1 <= 70) & (n2 <= 70):
             z_value = (p1 - p2)
             print('There were not enough regions to calculate the differential MDS for motif %s.' % label)
