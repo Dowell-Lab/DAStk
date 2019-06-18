@@ -47,6 +47,8 @@ setup(
         'scipy',
         'pandas',
         'pybedtools',
+        'futures',
+        'scikit-learn',
     ],
 
     entry_points={
