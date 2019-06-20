@@ -193,6 +193,9 @@ def main():
     atac_line = next(atac_csv_reader)
     atac_peak_count = 0
     
+    if os.path.exists(args.output_dir) is False:
+        raise NameError("The specified output directory does not exist. Please specifiy a valid directory.")
+    
     # Get chromosomes for multiprocessing
     if args.genome:
         chr_size_file = pybedtools.chromsizes(args.genome)
