@@ -99,7 +99,14 @@ The columns for the tab-separated output file from `differential_md_score` are:
 
     Motif name , p-value , # peaks in condition 1 , # peaks in condition 2 , MD-score in condition 1 , MD-score in condition 2
 
+### Genome File
 
+If your genome is not incuded in the UCSC genome repository, you will need to provide a chromosome sizes file. This can be generated using [samtools](http://www.htslib.org/doc/samtools.html) faidx as follows:
+
+```
+$ samtools faidx genome.fa
+$ cut -f1,2 genome.fa.fai > genome.chrom.sizes
+```
 
 
 ### Motif Files

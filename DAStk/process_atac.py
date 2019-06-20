@@ -124,11 +124,11 @@ def find_motifs_in_chrom(current_chrom, files):
     return [tf_distances, g_h, g_H, total_motif_sites]
 
 
-def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename, genome):
+def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename, CHROMOSOMES):
     #Get chromosomes for mutliprocessing
-    chr_size_file = pybedtools.chromsizes(genome)
-    unique_chr = list(chr_size_file.keys())[0:]
-    CHROMOSOMES = [word for word in unique_chr if len(word) <= 6]
+    #chr_size_file = pybedtools.chromsizes(genome)
+    #unique_chr = list(chr_size_file.keys())[0:]
+    #CHROMOSOMES = [word for word in unique_chr if len(word) <= 6]
 
     HISTOGRAM_BINS = 150
     pool = multiprocessing.Pool(mp_threads)
@@ -171,7 +171,10 @@ def main():
                         default='', required=True)
     parser.add_argument('-g', '--genome', dest='genome', \
                         help='Genome to which the organism is mapped (e.g. hg38, mm10)', \
-                        default='hg38', required=True)
+                        default='', required=False)
+    parser.add_argument('-c', '--chromosomes', dest='chromosomes', \
+                        help='Chromosome size file. See README for details in generating this file.', \
+                        default='', required=False)    
     parser.add_argument('-t', '--threads', dest='mp_threads', \
                         help='Number of CPUs to use for multiprocessing of MD-score calculations. Depends on your hardware architecture.', \
                         default='1', required=False)
@@ -189,6 +192,19 @@ def main():
     atac_csv_reader = csv.reader(atac_peaks_file, delimiter='\t')
     atac_line = next(atac_csv_reader)
     atac_peak_count = 0
+    
+    # Get chromosomes for multiprocessing
+    if args.genome:
+        chr_size_file = pybedtools.chromsizes(args.genome)
+        unique_chr = list(chr_size_file.keys())[0:]
+        CHROMOSOMES = [word for word in unique_chr if len(word) <= 6]
+    elif args.chromosomes:
+        chr_df = pd.read_csv(args.chromosomes, header=None, comment='#', sep="\t", usecols=[0,1], \
+                                  names=['chrom', 'size'], na_filter=False, dtype={'chrom':'str', 'size':'int'})
+        chr_list = list(chr_df['chrom'])
+        CHROMOSOMES = [word for word in chr_list if len(word) <= 6]
+    else:
+        raise ValueError("Either -g/--genome or -c/--chromosomes argument must be specified.") 
 
     # skip the BedGraph headers
     while(atac_line[0][0] == '#'):
@@ -230,8 +246,8 @@ def main():
         filename_no_path = filename.split('/')[-1]
         if os.path.getsize(filename) > 0 and \
            os.path.basename(filename).endswith(tuple(['.bed', '.BedGraph', '.txt'])):
-            [md_score, small_window, large_window, motif_site_count, heat] = get_md_score(filename, int(args.mp_threads), args.atac_peaks_filename, args.genome)
-            print('The MD-score for ATAC reads vs %s is %.6f' % (filename_no_path, md_score))
+            [md_score, small_window, large_window, motif_site_count, heat] = get_md_score(filename, int(args.mp_threads), args.atac_peaks_filename, CHROMOSOMES)
+            print('The MD-score for the provided BED regions vs %s is %.6f' % (filename_no_path, md_score))
             motif_stats.append({ 'motif_file': filename_no_path, \
                                  'md_score': md_score, \
                                  'small_window': small_window, \
