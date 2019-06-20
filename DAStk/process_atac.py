@@ -180,7 +180,9 @@ def main():
                         default='1', required=False)
     parser.add_argument('-o', '--output', dest='output_dir', \
                         help='Path to where scores file will be saved. Save output will be your peak file rootname + _md_scores.txt.', \
-                        default='', required=True)
+                        default='', required=True)                        
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.3.0')                        
+
     args = parser.parse_args()
 
     #evaluation_radius = 750   # in bps
