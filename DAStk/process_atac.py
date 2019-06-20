@@ -41,9 +41,9 @@ def is_in_window(motif_interval, atac_median, window_size):
 
 # this will be ran in parallel
 def find_motifs_in_chrom(current_chrom, files):
-    tf_motif_filename, atac_peaks_filename = files
-    H = 1500          # in bps, the MD-score parameter (large window)
-    h = 150           # in bps, the MD-score parameter (small window)
+    tf_motif_filename, atac_peaks_filename, radius = files
+    H = radius          # in bps, the MD-score parameter (large window)
+    h = radius * 0.1           # in bps, the MD-score parameter (small window)
     REPRESSOR_MARGIN = 500      # in bps, distance from the large window boundaries
 
     atac_df = pd.read_csv(atac_peaks_filename, header=None, comment='#', sep="\t", usecols=[0, 1, 2], \
@@ -124,7 +124,7 @@ def find_motifs_in_chrom(current_chrom, files):
     return [tf_distances, g_h, g_H, total_motif_sites]
 
 
-def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename, CHROMOSOMES):
+def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename, CHROMOSOMES, radius):
     #Get chromosomes for mutliprocessing
     #chr_size_file = pybedtools.chromsizes(genome)
     #unique_chr = list(chr_size_file.keys())[0:]
@@ -133,7 +133,7 @@ def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename, CHROMOSOMES
     HISTOGRAM_BINS = 150
     pool = multiprocessing.Pool(mp_threads)
     results = pool.map(partial( find_motifs_in_chrom, \
-                                files=[tf_motif_filename, atac_peaks_filename]), \
+                                files=[tf_motif_filename, atac_peaks_filename, radius]), \
                        CHROMOSOMES)
     pool.close()
     pool.join()
@@ -168,7 +168,10 @@ def main():
                         default='', required=True)
     parser.add_argument('-m', '--motif-path', dest='tf_motif_path', \
                         help='Path to the location of the motif sites for the desired reference genome (i.e., "/usr/local/motifs/human/hg19/*").', \
-                        default='', required=True)
+                        default='', required=True)                        
+    parser.add_argument('-r', '--radius', dest='radius', \
+                        help='Radius around BED regions for which to scan for motifs. Default = 1500', \
+                        default=1500, required=False, type=int)
     parser.add_argument('-g', '--genome', dest='genome', \
                         help='Genome to which the organism is mapped (e.g. hg38, mm10)', \
                         default='', required=False)
@@ -251,7 +254,7 @@ def main():
         filename_no_path = filename.split('/')[-1]
         if os.path.getsize(filename) > 0 and \
            os.path.basename(filename).endswith(tuple(['.bed', '.BedGraph', '.txt'])):
-            [md_score, small_window, large_window, motif_site_count, heat] = get_md_score(filename, int(args.mp_threads), args.atac_peaks_filename, CHROMOSOMES)
+            [md_score, small_window, large_window, motif_site_count, heat] = get_md_score(filename, int(args.mp_threads), args.atac_peaks_filename, CHROMOSOMES, args.radius)
             print('The MD-score for the provided BED regions vs %s is %.6f' % (filename_no_path, md_score))
             motif_stats.append({ 'motif_file': filename_no_path, \
                                  'md_score': md_score, \
