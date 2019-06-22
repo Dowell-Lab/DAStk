@@ -55,6 +55,7 @@ setup(
         'console_scripts': [
             'process_atac=DAStk:process_atac',
             'differential_md_score=DAStk:differential_md_score',
+            'barcode_plot=DAStk:barcode_plot',
         ],
     },
 

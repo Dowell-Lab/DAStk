@@ -125,10 +125,6 @@ def find_motifs_in_chrom(current_chrom, files):
 
 
 def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename, CHROMOSOMES, radius):
-    #Get chromosomes for mutliprocessing
-    #chr_size_file = pybedtools.chromsizes(genome)
-    #unique_chr = list(chr_size_file.keys())[0:]
-    #CHROMOSOMES = [word for word in unique_chr if len(word) <= 6]
 
     HISTOGRAM_BINS = 150
     pool = multiprocessing.Pool(mp_threads)
