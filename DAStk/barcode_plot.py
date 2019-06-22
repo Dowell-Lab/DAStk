@@ -17,17 +17,17 @@ def main():
     parser = argparse.ArgumentParser(description='This script generates barcodes using the output from DAStk.', \
                         formatter_class=RawTextHelpFormatter)
     parser.add_argument('-md', '--scores-1', dest='scores_1', metavar='ASSAY_1', \
-                    help='First MD score file generated from DAStk.', required=True)
+                    help='First MD score file generated from DAStk.', required=True, type=str)
     parser.add_argument('-MD', '--scores-2', dest='scores_2', metavar='ASSAY_1', \
-                    help='Second MD score file generated from DAStk. Not required if argument \'-s/--single\' is specified.', required=False)
+                    help='Second MD score file generated from DAStk. Not required if argument \'-s/--single\' is specified.', required=False, type=str)
     parser.add_argument('-a', '--assay-1', dest='assay_1', metavar='ASSAY_1', \
-                    help='Assay name of first MD score file.', required=True)
+                    help='Assay name of first MD score file.', required=True, type=str)
     parser.add_argument('-A', '--assay-2', dest='assay_2', metavar='ASSAY_2', \
-                    help='Assay name of second MD score file. Will be title of barcode plot. Not required if argument \'-s/--single\' is specified.', required=False)
+                    help='Assay name of second MD score file. Will be title of barcode plot. Not required if argument \'-s/--single\' is specified.', required=False, type=str)
     parser.add_argument('-tf', '--transcription-factor', dest='relevant_tf', metavar='TF', \
-                    help='Transcription factor you would like to plot. Should be full prefix before the .bed extension printed in the MD score output (e.g. JUND_HUMAN.H11MO.0.A).', required=True)
+                    help='Transcription factor you would like to plot. Should be full prefix before the .bed extension printed in the MD score output (e.g. JUND_HUMAN.H11MO.0.A).', required=True, type=str)
     parser.add_argument('-o', '--output', dest='output_dir', metavar='OUTPUT_DIR', \
-                    help='Path to directory where plot will be saved.', required=True)
+                    help='Path to directory where plot will be saved.', required=True, type=str)
     parser.add_argument('-s', '--single', dest='single', action='store_true', \
                     help='Generate a single barcode rather than a side-by-side comparison.', default=False, required=False)
     args = parser.parse_args()
@@ -38,55 +38,61 @@ def main():
             print(args)
             return 0
     
-    control = str(args.scores_1)
-    perturbation = str(args.scores_2)
-    relevant_tf = str(args.relevant_tf)
+    control = args.scores_1
+    perturbation = args.scores_2
+    relevant_tf = args.relevant_tf
     HISTOGRAM_BINS = 150
-    assay_1 = str(args.assay_1)
-    assay_2 = str(args.assay_2)
-    output_dir = str(args.output_dir)
+    assay_1 = args.assay_1
+    assay_2 = args.assay_2
+    output_dir = args.output_dir
     
     print('Parsing MD score file...' + str(datetime.datetime.now()))
 
     if args.single:
         control_mds = {}
         control_nr_peaks = {}
-        control_barcode = {}
+        control_barcodes = {}
+        control_total_motifs = {}
         labels = []
-        control_fd = open(control)
+        control_fd = open('%s' % assay_1)
         for line in control_fd:
             line_chunks = line.split(',')
             if '.bed' in line_chunks[0]:
                 control_mds[line_chunks[0][:-4]] = float(line_chunks[1])
                 labels.append(line_chunks[0][:-4])
-                control_nr_peaks[line_chunks[0][:-4]] = int(line_chunks[3])
-                control_barcode[line_chunks[0][:-4]] = line_chunks[5]
+                control_nr_peaks[line_chunks[0][:-4]] = round(float(line_chunks[3]))
+                control_total_motifs[line_chunks[0][:-4]] = int(line_chunks[4])
+                control_barcodes[line_chunks[0][:-4]] = line_chunks[5]
         
     else:    
         control_mds = {}
         control_nr_peaks = {}
-        control_barcode = {}
+        control_barcodes = {}
+        control_total_motifs = {}
         labels = []
-        control_fd = open(control)
+        control_fd = open('%s' % assay_1)
         for line in control_fd:
             line_chunks = line.split(',')
             if '.bed' in line_chunks[0]:
                 control_mds[line_chunks[0][:-4]] = float(line_chunks[1])
                 labels.append(line_chunks[0][:-4])
-                control_nr_peaks[line_chunks[0][:-4]] = int(line_chunks[3])
-                control_barcode[line_chunks[0][:-4]] = line_chunks[5]
+                control_nr_peaks[line_chunks[0][:-4]] = round(float(line_chunks[3]))
+                control_total_motifs[line_chunks[0][:-4]] = int(line_chunks[4])
+                control_barcodes[line_chunks[0][:-4]] = line_chunks[5]
         perturbation_mds = {}
         perturbation_nr_peaks = {}
-        perturbation_barcode = {}
-        perturbation_fd = open(perturbation)
+        perturbation_barcodes = {}
+        perturbation_total_motifs = {}
+        perturbation_fd = open('%s' % assay_2)
         for line in perturbation_fd:
             line_chunks = line.split(',')
             if '.bed' in line_chunks[0]:
                 assert(line_chunks[0][:-4] in labels)
                 perturbation_mds[line_chunks[0][:-4]] = float(line_chunks[1])
-                perturbation_nr_peaks[line_chunks[0][:-4]] = int(line_chunks[3])
-                perturbation_barcode[line_chunks[0][:-4]] = line_chunks[5]
-                
+                perturbation_nr_peaks[line_chunks[0][:-4]] = round(float(line_chunks[3]))
+                perturbation_total_motifs[line_chunks[0][:-4]] = int(line_chunks[4])
+                perturbation_barcodes[line_chunks[0][:-4]] = line_chunks[5]
+                    
     print('Plotting barcode(s)... ' + str(datetime.datetime.now()))            
             
     if args.single:            
