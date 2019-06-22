@@ -255,6 +255,7 @@ def main():
             short_text = text.replace('HO_', '')
             short_text = short_text.replace('_HUMAN.H10MO', '')
             short_text = short_text.replace('_MOUSE.H10MO', '')
+            short_text = short_text.split('_M', 1)[0]              
             texts.append(ax.text(x, y, u'%s' % short_text, fontsize=8, color=label_color))
             most_relevant_tfs.append(text)
     #adjust_text(texts, force_points=1, on_basemap=True, expand_points=(5,5), expand_text=(3,3), arrowprops=dict(arrowstyle="-", lw=1, color='grey', alpha=0.5))
