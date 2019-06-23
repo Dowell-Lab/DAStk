@@ -30,6 +30,7 @@ def main():
                         help='Label all TFs falling below the specified p-value cutoff.', required=False)    
     parser.add_argument('-o', '--output', dest='output_dir', metavar='OUTPUT_DIR', \
                     help='Path to directory where plot will be saved.', required=True, type=str)
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.3.0')       
     args = parser.parse_args()
     
     output_dir = args.output_dir
