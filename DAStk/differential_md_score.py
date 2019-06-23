@@ -31,7 +31,7 @@ def get_differential_md_scores(diff_params):
     (label, p1, p2, n1, n2, control_barcode, perturbation_barcode, is_chip, pval_cutoff) = diff_params
     control = p1
     perturbation = p2
-    nr_peaks = np.log2(n1 + n2)
+    nr_peaks = n1 + n2
     fold_change = p2 - p1
     perturbation_bc_array = np.array(perturbation_barcode.split(';'))
     control_bc_array = np.array(control_barcode.split(';'))
@@ -127,10 +127,10 @@ def get_differential_md_scores(diff_params):
                          'perturbation_md_score': round(p2, 3), \
                          'color': color, \
                          'size': size, \
-                         'fold_change': fold_change, \
+                         'fold_change': round(fold_change, 3), \
                          'control': control, \
                          'perturbation': perturbation, \
-                         'nr_peaks': nr_peaks, \
+                         'nr_peaks': int(nr_peaks), \
                          'label': label}
 
     print('Done with %s.' % label)
@@ -219,12 +219,13 @@ def main():
     differential_stats_file = open("%s/%s_vs_%s_differential_md_scores.txt" \
                                 % (args.output_dir, assay_1_prefix, assay_2_prefix), 'w')
     for stat in sorted_differential_stats:
-        differential_stats_file.write("%s\t%s\t%s\t%s\t%s\t%s\n" % \
+        differential_stats_file.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % \
                         (stat['motif_name'], stat['p_value'], stat['control_peaks'], \
-                        stat['perturbation_peaks'], stat['control_md_score'], stat['perturbation_md_score']))
+                        stat['perturbation_peaks'], stat['control_md_score'], stat['perturbation_md_score'], \
+                        stat['fold_change']))
     differential_stats_file.close()
 
-    nr_peaks = [d['nr_peaks'] for d in sorted_differential_stats]
+    nr_peaks = [np.log2(d['nr_peaks']) for d in sorted_differential_stats]
     fold_change = [d['fold_change'] for d in sorted_differential_stats]
     p_values = [d['p_value'] for d in sorted_differential_stats]
     colors = [d['color'] for d in sorted_differential_stats]
