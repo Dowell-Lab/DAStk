@@ -14,7 +14,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='DAStk',
-    version='0.2.0',
+    version='0.3.0',
     description='Differential ATAC-seq toolkit',
     long_description=long_description,
     license='BSD',
@@ -56,6 +56,7 @@ setup(
             'process_atac=DAStk:process_atac',
             'differential_md_score=DAStk:differential_md_score',
             'barcode_plot=DAStk:barcode_plot',
+            'ma_plot=DAStk:ma_plot',
         ],
     },
 
