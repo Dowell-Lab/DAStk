@@ -164,7 +164,11 @@ def main():
 
     HISTOGRAM_BINS = 150
     assay_1_prefix = os.path.splitext(os.path.basename(args.assay_1))[0]
+    if assay_1_prefix.endswith('_md_scores'):
+        assay_1_prefix = assay_1_prefix[:-10]
     assay_2_prefix = os.path.splitext(os.path.basename(args.assay_2))[0]
+    if assay_2_prefix.endswith('_md_scores'):
+        assay_2_prefix = assay_2_prefix[:-10]    
     P_VALUE_CUTOFF = float(args.p_value)
     threads = int(args.threads)
 
@@ -261,13 +265,25 @@ def main():
             most_relevant_tfs.append(text)
     #adjust_text(texts, force_points=1, on_basemap=True, expand_points=(5,5), expand_text=(3,3), arrowprops=dict(arrowstyle="-", lw=1, color='grey', alpha=0.5))
     adjust_text(texts, force_points=1, expand_points=(2,2), expand_text=(2,2), arrowprops=dict(arrowstyle="-", lw=1, color='black', alpha=0.8))
-
-    label_1_str = assay_1_prefix
+    
+    #Check to make sure plot titles are not too large... will skew plot image otherwise
+    
+    if len(assay_1_prefix) <= 19:
+        label_1_str = assay_1_prefix
+    else:
+        label_1_str = assay_1_prefix[:19]
+        
     if args.label_1:
         label_1_str = args.label_1
-    label_2_str = assay_2_prefix
+        
+    if len(assay_2_prefix) <= 19:
+        label_2_str = assay_2_prefix
+    else:
+        label_2_str = assay_2_prefix[:19]
+        
     if args.label_2:
         label_2_str = args.label_2
+
     plt.title(u'MA for %s vs. %s MD-scores\n(p-value cutoff: %.2E)' % \
                 (label_1_str, label_2_str, P_VALUE_CUTOFF), fontsize=12)
     plt.xlabel(u'$\log_2$(Sum #peaks overlapping 3kbp window)', fontsize=14)
@@ -300,7 +316,7 @@ def main():
                 ax0.matshow(heat_m, cmap=cm.YlGnBu)
             ax0.axis('off')
             ax0.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (control_nr_peaks[relevant_tf], control_mds[relevant_tf]), ha='center', size=18, zorder=0)
-            ax0.text(HISTOGRAM_BINS/2, -10, label_1_str[:10], ha='center', size=18, zorder=0)
+            ax0.text(HISTOGRAM_BINS/2, -10, label_1_str, ha='center', size=18, zorder=0)
 
             perturbation_bc_data = np.array(perturbation_barcodes[relevant_tf].split(';'))
             perturbation_bc_data = perturbation_bc_data.astype(float)
@@ -310,7 +326,7 @@ def main():
                 ax1.matshow(heat_m, cmap=cm.YlGnBu)
             ax1.axis('off')
             ax1.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (perturbation_nr_peaks[relevant_tf], perturbation_mds[relevant_tf]), ha='center', size=18, zorder=0)
-            ax1.text(HISTOGRAM_BINS/2, -10, label_2_str[:10], ha='center', size=18, zorder=0)
+            ax1.text(HISTOGRAM_BINS/2, -10, label_2_str, ha='center', size=18, zorder=0)
 
             plt.tight_layout()
             plt.savefig('%s/%s_barcode_%s_vs_%s.png' % (args.output_dir, relevant_tf, assay_1_prefix, assay_2_prefix), dpi=600)
