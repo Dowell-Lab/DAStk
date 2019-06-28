@@ -127,6 +127,8 @@ $ cut -f1,2 genome.fa.fai > genome.chrom.sizes
 
 ```
 
+This file can then be specified using the -c/--chromosomes argument in process_atac. Scaffold chromosomes will be removed.
+
 ### Altering Window Size
 
 While we strongly recommend using the default 1500bp radius window in calculating the MD score (and differential MD score), as of v0.3.0 we now have a radius argument (-r/--radius) which will allow you to expand or shrink this window. If changed, the MD score calculation will follow the same principle in that it will be a ratio of motifs hits within the cetner 1/10th of the window relative divided by the number of total motif hits within the window. For example, if the user specifies a radius of 2000bp, there will be a window size of 4000bp, a center of 400bp around the features of interest, and the MD score will be # motif hits within 400bp/ # motifs within 4000bp. Keep in mind that expanding this window may be useful in visualization, but will result in an MD score approaching 0.1 (background).
