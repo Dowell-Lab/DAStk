@@ -113,7 +113,7 @@ If you can take advantage of multiprocessing, you can calculate MD-scores for bo
 
 The columns for the tab-separated output file from `differential_md_score` are:
 
-    Motif name , p-value , # peaks in condition 1 , # peaks in condition 2 , MD-score in condition 1 , MD-score in condition 2
+    Motif name , p-value , # peaks in condition 1 , # peaks in condition 2 , MD-score in condition 1 , MD-score in condition 2, fold change
     
 ## Additional Arguments    
 
