@@ -32,7 +32,6 @@ def get_differential_md_scores(diff_params):
     control = p1
     perturbation = p2
     nr_peaks = n1 + n2
-    fold_change = p2 - p1
     perturbation_bc_array = np.array(perturbation_barcode.split(';'))
     control_bc_array = np.array(control_barcode.split(';'))
 
@@ -40,6 +39,8 @@ def get_differential_md_scores(diff_params):
         p1 = .1
     if n2 <= 70:
         p2 = .1
+        
+    fold_change = p2 - p1        
 
     if n1 > 70:
         control_bc_boot = control_bc_array.astype(int)
