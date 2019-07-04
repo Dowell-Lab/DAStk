@@ -121,11 +121,9 @@ The columns for the tab-separated output file from `differential_md_score` are:
 
 If your genome is not incuded in the UCSC genome repository, you will instead need to provide a chromosome sizes file in processess_atac. This can be generated using [samtools](http://www.htslib.org/doc/samtools.html) faidx as follows:
 
-```
-$ samtools faidx genome.fa
-$ cut -f1,2 genome.fa.fai > genome.chrom.sizes
+    $ samtools faidx genome.fa
+    $ cut -f1,2 genome.fa.fai > genome.chrom.sizes
 
-```
 
 This file can then be specified using the -c/--chromosomes argument in process_atac. Scaffold chromosomes will be removed.
 

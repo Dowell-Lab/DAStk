@@ -14,9 +14,10 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='DAStk',
-    version='0.3.0',
+    version='0.2.1',
     description='Differential ATAC-seq toolkit',
     long_description=long_description,
+    long_description_content_type="text/markdown",
     license='BSD',
     url='https://github.com/Dowell-Lab/DAStk',
     author='Ignacio Tripodi',
@@ -33,7 +34,7 @@ setup(
         'Programming Language :: Python :: 3',
     ],
 
-    keywords='bioinformatics genomics chromatin ATAC-seq motif transcription_factor',
+    keywords='bioinformatics genomics chromatin ATAC-seq motif transcription_factor TF',
 
     package_dir={'DAStk' : 'DAStk'},
     packages=['DAStk'],
@@ -63,7 +64,8 @@ setup(
     project_urls={
         'Bug Reports': 'https://github.com/Dowell-Lab/DAStk/issues',
         'Source': 'https://github.com/Dowell-Lab/DAStk',
-        'Human Motif Sites': 'http://dowell.colorado.edu/pubs/DAStk/human_motifs.tar.gz',
-        'Mouse Motif Sites': 'http://dowell.colorado.edu/pubs/DAStk/mouse_motifs.tar.gz',
+        'Human Motif Sites (GRCh38)': 'http://dowell.colorado.edu/pubs/DAStk/motifs/HOCOMOCO_v11_p1e-6_grch38.tar.gz',
+        'Human Motif Sites (hg19)': 'http://dowell.colorado.edu/pubs/DAStk/motifs/HOCOMOCO_v11_p1e-6_hg19.tar.gz',
+        'Mouse Motif Sites (mm10)': 'http://dowell.colorado.edu/pubs/DAStk/motifs/HOCOMOCO_v11_p1e-6_mm10.tar.gz',
     },
 )
