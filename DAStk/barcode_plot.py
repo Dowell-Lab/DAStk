@@ -129,7 +129,7 @@ def main():
         ax0.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (control_nr_peaks[relevant_tf], control_mds[relevant_tf]), ha='center', size=12, zorder=0)
         ax0.text(HISTOGRAM_BINS/2, -5, assay_1, ha='center', size=12, zorder=0)
         
-        perturbation_bc_data = np.array(perturbation_barcode[relevant_tf].split(';'))
+        perturbation_bc_data = np.array(perturbation_barcodes[relevant_tf].split(';'))
         perturbation_bc_data = perturbation_bc_data.astype(int)
         heat_m = np.nan * np.empty(shape=(int(HISTOGRAM_BINS/4), HISTOGRAM_BINS))
         for row in range(int(HISTOGRAM_BINS/4)):
