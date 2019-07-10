@@ -101,7 +101,7 @@ def main():
         plt.title('Barcode plots for %s' % relevant_tf)
         fig, (ax0) = plt.subplots(ncols=1)
         
-        control_bc_data = np.array(control_barcode[relevant_tf].split(';'))
+        control_bc_data = np.array(control_barcodes[relevant_tf].split(';'))
         # Condense the barcode to half the bins for prettier display
         control_bc_data = control_bc_data.astype(int)
         heat_m = np.nan * np.empty(shape=(int(HISTOGRAM_BINS/4), HISTOGRAM_BINS))
@@ -118,7 +118,7 @@ def main():
         plt.title('Barcode plots for %s' % relevant_tf)
         fig, (ax0, ax1) = plt.subplots(ncols=2)
         
-        control_bc_data = np.array(control_barcode[relevant_tf].split(';'))
+        control_bc_data = np.array(control_barcodes[relevant_tf].split(';'))
         # Condense the barcode to half the bins for prettier display
         control_bc_data = control_bc_data.astype(int)
         heat_m = np.nan * np.empty(shape=(int(HISTOGRAM_BINS/4), HISTOGRAM_BINS))
