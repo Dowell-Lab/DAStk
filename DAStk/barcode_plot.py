@@ -55,7 +55,7 @@ def main():
         control_barcodes = {}
         control_total_motifs = {}
         labels = []
-        control_fd = open('%s' % assay_1)
+        control_fd = open('%s' % control)
         for line in control_fd:
             line_chunks = line.split(',')
             if '.bed' in line_chunks[0]:
@@ -71,7 +71,7 @@ def main():
         control_barcodes = {}
         control_total_motifs = {}
         labels = []
-        control_fd = open('%s' % assay_1)
+        control_fd = open('%s' % control)
         for line in control_fd:
             line_chunks = line.split(',')
             if '.bed' in line_chunks[0]:
@@ -84,7 +84,7 @@ def main():
         perturbation_nr_peaks = {}
         perturbation_barcodes = {}
         perturbation_total_motifs = {}
-        perturbation_fd = open('%s' % assay_2)
+        perturbation_fd = open('%s' % perturbation)
         for line in perturbation_fd:
             line_chunks = line.split(',')
             if '.bed' in line_chunks[0]:
