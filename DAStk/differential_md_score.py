@@ -10,6 +10,7 @@ import matplotlib as mpl
 # to prevent display-related issues
 mpl.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.ticker as plticker
 plt.ioff()
 from matplotlib import cm
 from adjustText import adjust_text
@@ -21,18 +22,13 @@ from sklearn.utils import resample
 from sklearn.tree import DecisionTreeClassifier
 import concurrent.futures
 
-# Usage:
-#
-# $ python differential_md_score.py -1 control -2 tamoxifen -p 0.000000000001 -o /outdir
-#
-
 
 def get_differential_md_scores(diff_params):
     (label, p1, p2, n1, n2, control_barcode, perturbation_barcode, is_chip, pval_cutoff) = diff_params
     control = p1
     perturbation = p2
     nr_peaks = n1 + n2
-    fold_change = p2 - p1
+    delta_md = p2 - p1
     perturbation_bc_array = np.array(perturbation_barcode.split(';'))
     control_bc_array = np.array(control_barcode.split(';'))
 
@@ -127,7 +123,7 @@ def get_differential_md_scores(diff_params):
                          'perturbation_md_score': round(p2, 3), \
                          'color': color, \
                          'size': size, \
-                         'fold_change': round(fold_change, 3), \
+                         'delta_md': round((p2 - p1), 3), \
                          'control': control, \
                          'perturbation': perturbation, \
                          'nr_peaks': int(nr_peaks), \
@@ -164,7 +160,11 @@ def main():
 
     HISTOGRAM_BINS = 150
     assay_1_prefix = os.path.splitext(os.path.basename(args.assay_1))[0]
+    if assay_1_prefix.endswith('_md_scores'):
+        assay_1_prefix = assay_1_prefix[:-10]
     assay_2_prefix = os.path.splitext(os.path.basename(args.assay_2))[0]
+    if assay_2_prefix.endswith('_md_scores'):
+        assay_2_prefix = assay_2_prefix[:-10] 
     P_VALUE_CUTOFF = float(args.p_value)
     threads = int(args.threads)
 
@@ -222,17 +222,19 @@ def main():
         differential_stats_file.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % \
                         (stat['motif_name'], stat['p_value'], stat['control_peaks'], \
                         stat['perturbation_peaks'], stat['control_md_score'], stat['perturbation_md_score'], \
-                        stat['fold_change']))
+                        stat['delta_md']))
     differential_stats_file.close()
+    
+    sorted_differential_stats_sorted = [item for item in sorted_differential_stats if item['delta_md'] != 0]
 
-    nr_peaks = [np.log2(d['nr_peaks']) for d in sorted_differential_stats]
-    fold_change = [d['fold_change'] for d in sorted_differential_stats]
-    p_values = [d['p_value'] for d in sorted_differential_stats]
-    colors = [d['color'] for d in sorted_differential_stats]
-    sizes = [d['size'] for d in sorted_differential_stats]
-    control = [d['control'] for d in sorted_differential_stats]
-    perturbation = [d['perturbation'] for d in sorted_differential_stats]
-    labels = [d['motif_name'] for d in sorted_differential_stats]
+    nr_peaks = [np.log2(d['nr_peaks']) for d in sorted_differential_stats_sorted]
+    delta_md = [d['delta_md'] for d in sorted_differential_stats_sorted]
+    p_values = [d['p_value'] for d in sorted_differential_stats_sorted]
+    colors = [d['color'] for d in sorted_differential_stats_sorted]
+    sizes = [d['size'] for d in sorted_differential_stats_sorted]
+    control = [d['control'] for d in sorted_differential_stats_sorted]
+    perturbation = [d['perturbation'] for d in sorted_differential_stats_sorted]
+    labels = [d['motif_name'] for d in sorted_differential_stats_sorted]
 
     np_control, np_perturbation, np_labels = np.array(control), np.array(perturbation), np.array(labels)
 
@@ -240,10 +242,10 @@ def main():
     most_relevant_tfs = []
     plt.clf()
     fig, ax = plt.subplots()
-    ax.scatter(nr_peaks, fold_change, s=sizes, edgecolor='white', linewidth=0.5, color=colors)
+    ax.scatter(nr_peaks, delta_md, s=sizes, edgecolor='white', linewidth=0.5, color=colors)
     texts = []
 
-    for x, y, text, p_value in zip(nr_peaks, fold_change, np_labels, p_values):
+    for x, y, text, p_value in zip(nr_peaks, delta_md, np_labels, p_values):
         if p_value < P_VALUE_CUTOFF:
             print('%s (%.3f, p-value = %.2E)' % (text, y, p_value))
             label_color = 'maroon'
@@ -256,28 +258,43 @@ def main():
             short_text = text.replace('HO_', '')
             short_text = short_text.replace('_HUMAN.H10MO', '')
             short_text = short_text.replace('_MOUSE.H10MO', '')
-            short_text = short_text.split('_M', 1)[0]              
+            short_text = short_text.split('_M', 1)[0]  
+            short_text = short_text.split('_', 1)[0]
             texts.append(ax.text(x, y, u'%s' % short_text, fontsize=8, color=label_color))
             most_relevant_tfs.append(text)
     #adjust_text(texts, force_points=1, on_basemap=True, expand_points=(5,5), expand_text=(3,3), arrowprops=dict(arrowstyle="-", lw=1, color='grey', alpha=0.5))
     adjust_text(texts, force_points=1, expand_points=(2,2), expand_text=(2,2), arrowprops=dict(arrowstyle="-", lw=1, color='black', alpha=0.8))
-
-    label_1_str = assay_1_prefix
+    
+    #Check to make sure plot titles are not too large... will skew plot image otherwise
+    
+    if len(assay_1_prefix) <= 19:
+        label_1_str = assay_1_prefix
+    else:
+        label_1_str = assay_1_prefix[:19]
+        
     if args.label_1:
         label_1_str = args.label_1
-    label_2_str = assay_2_prefix
+        
+    if len(assay_2_prefix) <= 19:
+        label_2_str = assay_2_prefix
+    else:
+        label_2_str = assay_2_prefix[:19]
+        
     if args.label_2:
-        label_2_str = args.label_2
+        label_2_str = args.label_2    
+
     plt.title(u'MA for %s vs. %s MD-scores\n(p-value cutoff: %.2E)' % \
                 (label_1_str, label_2_str, P_VALUE_CUTOFF), fontsize=12)
-    plt.xlabel(u'$\log_2$(Sum #peaks overlapping 3kbp window)', fontsize=14)
+    plt.xlabel(u'$\log_2$(Sum #peaks overlapping window)', fontsize=14)
     plt.ylabel(u'${\Delta}$ MD-score', fontsize=14)
     plt.xlim(np.min(nr_peaks), np.max(nr_peaks) + 1)
     plt.xscale('log',basex=2)
+    loc = plticker.MultipleLocator(base=2.0) # this locator puts ticks at regular intervals
+    ax.xaxis.set_major_locator(loc)    
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.tick_params(axis='x',reset=False,which='both',length=5,width=1)
-    y_bound = max(np.abs(np.min(fold_change)), np.max(fold_change)) + 0.01
+    y_bound = max(np.abs(np.min(delta_md)), np.max(delta_md)) + 0.01
     plt.ylim(-1 * y_bound, y_bound)
     plt.tight_layout()
     plt.savefig('%s/MA_%s_to_%s_md_score.png' % (args.output_dir, assay_1_prefix, assay_2_prefix), dpi=600)

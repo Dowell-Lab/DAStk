@@ -7,6 +7,7 @@ import matplotlib as mpl
 # to prevent display-related issues
 mpl.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.ticker as plticker
 plt.ioff()
 from matplotlib import cm
 from adjustText import adjust_text
@@ -39,7 +40,7 @@ def main():
     print('Parsing MD score stats...' + str(datetime.datetime.now()))
     
     nr_peaks = []
-    fold_change = []
+    delta_md = []
     p_values = []
     labels = []
     sizes=[]
@@ -47,39 +48,40 @@ def main():
     stats_file = open('%s' % args.stats)
     for line in stats_file:
         line_chunks = line.split('\t')
-        labels.append(line_chunks[0])
-        p_value = float(line_chunks[1])
-        p_values.append(float(line_chunks[1]))
-        nr_peaks.append(np.log2(int(line_chunks[2]) + int(line_chunks[3])))
-        p1 = float(line_chunks[4])
-        p2 = float(line_chunks[5])
-        fold_change.append(float(line_chunks[6]))
+        if line_chunks[6] != '0.0\n' :
+            labels.append(line_chunks[0])
+            p_value = float(line_chunks[1])
+            p_values.append(float(line_chunks[1]))
+            nr_peaks.append(np.log2(int(line_chunks[2]) + int(line_chunks[3])))
+            p1 = float(line_chunks[4])
+            p2 = float(line_chunks[5])
+            delta_md.append(float(line_chunks[6]))
         
-        if p_value < (P_VALUE_CUTOFF / 10) and p2 > p1:
-            colors.append('#c64e50')
-            sizes.append(70)
-        elif p_value < P_VALUE_CUTOFF and p2 > p1:
-            colors.append('maroon')
-            sizes.append(70)
-        elif p_value < (P_VALUE_CUTOFF / 10) and p2 < p1:
-            colors.append('darkviolet')
-            sizes.append(70)
-        elif p_value < P_VALUE_CUTOFF and p2 < p1:
-            colors.append('purple')
-            sizes.append(70)
-        else:
-            colors.append('#4e74ae')
-            sizes.append(70)
+            if p_value < (P_VALUE_CUTOFF / 10) and p2 > p1:
+                colors.append('#c64e50')
+                sizes.append(70)
+            elif p_value < P_VALUE_CUTOFF and p2 > p1:
+                colors.append('maroon')
+                sizes.append(70)
+            elif p_value < (P_VALUE_CUTOFF / 10) and p2 < p1:
+                colors.append('darkviolet')
+                sizes.append(70)
+            elif p_value < P_VALUE_CUTOFF and p2 < p1:
+                colors.append('purple')
+                sizes.append(70)
+            else:
+                colors.append('#4e74ae')
+                sizes.append(70)
                     
     # MA (mean/average) plot
     #most_relevant_tfs = []    
     plt.clf()
     fig, ax = plt.subplots()
-    ax.scatter(nr_peaks, fold_change, s=sizes, edgecolor='white', linewidth=0.5, color=colors)
+    ax.scatter(nr_peaks, delta_md, s=sizes, edgecolor='white', linewidth=0.5, color=colors)
     #relevant_tfs = [args.relevant_tfs]
     texts = []
 
-    for x, y, text, p_value, color in zip(nr_peaks, fold_change, labels, p_values, colors):
+    for x, y, text, p_value, color in zip(nr_peaks, delta_md, labels, p_values, colors):
         #if args.relevant_tfs:
         #    short_text = text.replace('HO_', '')
         #    short_text = short_text.replace('_HUMAN.H10MO', '')
@@ -92,6 +94,7 @@ def main():
                 short_text = text.replace('HO_', '')
                 short_text = short_text.replace('_HUMAN.H10MO', '')
                 short_text = short_text.split('_M', 1)[0]
+                short_text = short_text.split('_', 1)[0]
                 texts.append(ax.text(x, y, u'%s' % short_text, fontsize=8, color=color))
     adjust_text(texts, force_points=1, expand_points=(2,2), expand_text=(2,2), arrowprops=dict(arrowstyle="-", lw=1, color='black', alpha=0.8))
 
@@ -103,10 +106,12 @@ def main():
     plt.ylabel(u'${\Delta}$ MD-score', fontsize=14)
     plt.xlim(np.min(nr_peaks), np.max(nr_peaks) + 1)
     plt.xscale('log',basex=2)
+    loc = plticker.MultipleLocator(base=2.0) # this locator puts ticks at regular intervals
+    ax.xaxis.set_major_locator(loc)     
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.tick_params(axis='x',reset=False,which='both',length=5,width=1)
-    y_bound = max(np.abs(np.min(fold_change)), np.max(fold_change)) + 0.01
+    y_bound = max(np.abs(np.min(delta_md)), np.max(delta_md)) + 0.01
     plt.ylim(-1 * y_bound, y_bound)
     plt.tight_layout()
     plt.savefig('%s/MA_%s_to_%s_md_score.png' % (args.output_dir, label_1_str, label_2_str), dpi=600)          
