@@ -23,12 +23,14 @@ def main():
                         help='Label for the MA plot title corresponding to assay 1', required=True)
     parser.add_argument('-n', '--label-2', dest='label_2', metavar='LABEL_2', \
                         help='Label for the MA plot title corresponding to assay 2', required=True)
+    parser.add_argument('-w', '--window', dest='window_size', metavar='WINDOW', \
+                        help='Label for the MA plot title corresponding to window size (str). Default = \'3kb\'', type=str, default='3kb', required=False)    
     #parser.add_argument('-tf', '--transcription-factor', nargs='+', dest='relevant_tfs', metavar='TFs', \
     #                help='Transcription factor you would like to plot. Should be full prefix before the .bed extension printed in the MD score output (e.g. JUND_HUMAN.H11MO.0.A).', required=False)      
     parser.add_argument('-p', '--p-value', dest='p_value', metavar='P_VALUE', \
                         help='p-value cutoff to define which motifs to label in the MA plot. Defaults to 0.00001.', default=0.00001, required=False)
     parser.add_argument('-l', '--label_p-value', dest='label_by_p_value', action='store_true', \
-                        help='Label all TFs falling below the specified p-value cutoff.', required=False)    
+                        help='Label all TFs falling below the specified p-value cutoff.', required=False)
     parser.add_argument('-o', '--output', dest='output_dir', metavar='OUTPUT_DIR', \
                     help='Path to directory where plot will be saved.', required=True, type=str)
     parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.3.0')       
@@ -102,7 +104,7 @@ def main():
     label_2_str = args.label_2
     plt.title(u'MA for %s vs. %s MD-scores\n(p-value cutoff: %.2E)' % \
                 (label_1_str, label_2_str, P_VALUE_CUTOFF), fontsize=12)
-    plt.xlabel(u'$\log_2$(Sum #peaks overlapping 3kbp window)', fontsize=14)
+    plt.xlabel(u'$\log_2$(Sum #peaks overlapping ' + args.window_size + ' window)', fontsize=14)
     plt.ylabel(u'${\Delta}$ MD-score', fontsize=14)
     plt.xlim(np.min(nr_peaks), np.max(nr_peaks) + 1)
     plt.xscale('log',basex=2)

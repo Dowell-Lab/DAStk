@@ -144,6 +144,8 @@ def main():
                         help='Label for the MA plot title corresponding to assay 1', required=False)
     parser.add_argument('-n', '--label-2', dest='label_2', metavar='LABEL_2', \
                         help='Label for the MA plot title corresponding to assay 2', required=False)
+    parser.add_argument('-w', '--window', dest='window_size', metavar='WINDOW', \
+                        help='Label for the MA plot title corresponding to window size (str). Default = \'3kb\'', type=str, default='3kb', required=False)    
     parser.add_argument('-b', '--barcodes', dest='gen_barcode', action='store_true', \
                         help='Generate a barcode plot for each significant motif', default=False, required=False)
     parser.add_argument('-o', '--output', dest='output_dir', \
@@ -283,7 +285,7 @@ def main():
 
     plt.title(u'MA for %s vs. %s MD-scores\n(p-value cutoff: %.2E)' % \
                 (label_1_str, label_2_str, P_VALUE_CUTOFF), fontsize=12)
-    plt.xlabel(u'$\log_2$(Sum #peaks overlapping window)', fontsize=14)
+    plt.xlabel(u'$\log_2$(Sum #peaks overlapping ' + args.window_size + ' window)', fontsize=14)
     plt.ylabel(u'${\Delta}$ MD-score', fontsize=14)
     plt.xlim(np.min(nr_peaks), np.max(nr_peaks) + 1)
     plt.xscale('log',basex=2)
