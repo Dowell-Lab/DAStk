@@ -10,7 +10,7 @@ def differential_md_score():
     d.main()
     
 def barcode_plot():
-    d.main() 
+    b.main() 
     
 def ma_plot():
     m.main()     
