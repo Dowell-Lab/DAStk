@@ -30,7 +30,7 @@ def main():
                     help='Path to directory where plot will be saved.', required=True, type=str)
     parser.add_argument('-s', '--single', dest='single', action='store_true', \
                     help='Generate a single barcode rather than a side-by-side comparison.', default=False, required=False)
-    parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.3.0')       
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.3.1')       
     args = parser.parse_args()
 
     if not args.single:

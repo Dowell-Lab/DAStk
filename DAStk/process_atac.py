@@ -1,5 +1,3 @@
-#! /usr/bin/env/python
-
 from __future__ import print_function
 import argparse
 import csv
@@ -180,7 +178,7 @@ def main():
     parser.add_argument('-o', '--output', dest='output_dir', \
                         help='Path to where scores file will be saved. Save output will be your peak file rootname + _md_scores.txt.', \
                         default='', required=True)                        
-    parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.3.0')                        
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.3.1')                        
 
     args = parser.parse_args()
 
@@ -188,11 +186,19 @@ def main():
     ATAC_WIDTH_THRESHOLD = 5000   # in bp
 
     print('Starting --- ' + str(datetime.datetime.now()))
-    atac_peaks_file = open(args.atac_peaks_filename)
     output_prefix = os.path.splitext(os.path.basename(args.atac_peaks_filename))[0]
-    atac_csv_reader = csv.reader(atac_peaks_file, delimiter='\t')
-    atac_line = next(atac_csv_reader)
-    atac_peak_count = 0
+    input_file_statinfo = os.stat(args.atac_peaks_filename)    
+    
+    if input_file_statinfo.st_size !=0:
+        atac_peaks_file = open(args.atac_peaks_filename)
+        atac_csv_reader = csv.reader(atac_peaks_file, delimiter='\t')
+        atac_line = next(atac_csv_reader)
+        atac_peak_count = 0        
+    else:
+        raise ValueError("The specified annotation file (e.g. ATAC peaks file) is empty. Exiting.")
+    
+    if not os.listdir(args.tf_motif_path):
+        raise NameError("The specified motif directory is empty or does not exist. Please check that there are motif files in the directory specified by the -m/--motif-path argument.")
     
     if os.path.exists(args.output_dir) is False:
         raise NameError("The specified output directory does not exist. Please specifiy a valid directory.")
@@ -225,7 +231,7 @@ def main():
         except StopIteration:
             break
         except IndexError:
-            print("\nThere was an error with the ATAC-seq peaks file.\nPlease verify it conforms with a BedGraph-like format\n(tab-separated columns, any other lines commented with a leading '#')")
+            print("\nThere was an error with the input annotation (e.g. ATAC peak file) file.\nPlease verify it conforms with a BED format\n(tab-separated columns, any other lines commented with a leading '#')")
             sys.exit(1)
     atac_peak_mean = np.mean(all_widths)
     atac_peak_std = np.std(all_widths)
