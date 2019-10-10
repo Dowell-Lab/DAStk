@@ -55,7 +55,7 @@ def main():
         control_barcodes = {}
         control_total_motifs = {}
         labels = []
-        control_fd = open('%s' % assay_1)
+        control_fd = open('%s' % control)
         for line in control_fd:
             line_chunks = line.split(',')
             if '.bed' in line_chunks[0]:
@@ -71,7 +71,7 @@ def main():
         control_barcodes = {}
         control_total_motifs = {}
         labels = []
-        control_fd = open('%s' % assay_1)
+        control_fd = open('%s' % control)
         for line in control_fd:
             line_chunks = line.split(',')
             if '.bed' in line_chunks[0]:
@@ -84,7 +84,7 @@ def main():
         perturbation_nr_peaks = {}
         perturbation_barcodes = {}
         perturbation_total_motifs = {}
-        perturbation_fd = open('%s' % assay_2)
+        perturbation_fd = open('%s' % perturbation)
         for line in perturbation_fd:
             line_chunks = line.split(',')
             if '.bed' in line_chunks[0]:
@@ -111,7 +111,7 @@ def main():
         ax0.axis('off')
         ax0.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (control_nr_peaks[relevant_tf], control_mds[relevant_tf]), ha='center', size=12, zorder=0)
         ax0.text(HISTOGRAM_BINS/2, -5, assay_1, ha='center', size=12, zorder=0)
-        plt.savefig('%s/%s_%s.png' % (output_dir, relevant_tf ,assay_1) , dpi=600)
+        plt.savefig('%s/%s_%s.png' % (output_dir, relevant_tf, assay_1) , dpi=600)
         
     else:
         plt.clf()
@@ -139,7 +139,7 @@ def main():
         ax1.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (perturbation_nr_peaks[relevant_tf], perturbation_mds[relevant_tf]), ha='center', size=12, zorder=0)
         ax1.text(HISTOGRAM_BINS/2, -5, assay_2, ha='center', size=12, zorder=0)
         
-        plt.savefig('%s/%s_%s_vs_%s.png' % (output_dir, relevant_tf ,assay_1, assay_2) , dpi=600)
+        plt.savefig('%s/%s_%s_vs_%s.png' % (output_dir, relevant_tf, assay_1, assay_2) , dpi=600)
         
     print('Done! ' + str(datetime.datetime.now()))   
         
