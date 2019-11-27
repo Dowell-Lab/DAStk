@@ -22,11 +22,12 @@ import concurrent.futures
 
 
 def get_differential_md_scores(diff_params):
-    (label, p1, p2, n1, n2, control_barcode, perturbation_barcode, is_chip, pval_cutoff) = diff_params
+    (label, p1, p2, n1, n2, total_motifs, control_barcode, perturbation_barcode, is_chip, pval_cutoff) = diff_params
     control = p1
     perturbation = p2
     nr_peaks = n1 + n2
     delta_md = p2 - p1
+    total_nr_motifs = total_motifs
     perturbation_bc_array = np.array(perturbation_barcode.split(';'))
     control_bc_array = np.array(control_barcode.split(';'))
 
@@ -119,6 +120,7 @@ def get_differential_md_scores(diff_params):
                          'p_value': p_value, \
                          'control_peaks': int(n1), \
                          'perturbation_peaks': int(n2), \
+                         'total_nr_motifs': int(total_nr_motifs), \
                          'control_md_score': round(p1, 3), \
                          'perturbation_md_score': round(p2, 3), \
                          'color': color, \
@@ -208,6 +210,7 @@ def main():
                                     float(perturbation_mds[label]), \
                                     float(control_nr_peaks[label]), \
                                     float(perturbation_nr_peaks[label]), \
+                                    int(perturbation_total_motifs[label]), \
                                     control_barcodes[label], \
                                     perturbation_barcodes[label], \
                                     args.chip, \
@@ -221,8 +224,8 @@ def main():
     differential_stats_file = open("%s/%s_vs_%s_differential_md_scores.txt" \
                                 % (args.output_dir, assay_1_prefix, assay_2_prefix), 'w')
     for stat in sorted_differential_stats:
-        differential_stats_file.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % \
-                        (stat['motif_name'], stat['p_value'], stat['control_peaks'], \
+        differential_stats_file.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % \
+                        (stat['motif_name'], stat['p_value'], stat['total_nr_motifs'], stat['control_peaks'], \
                         stat['perturbation_peaks'], stat['control_md_score'], stat['perturbation_md_score'], \
                         stat['delta_md']))
     differential_stats_file.close()
