@@ -216,8 +216,7 @@ def main():
             COLORS = ['#154360', '#C70039']
                 
         df = pd.DataFrame(data_dictionary)
-        df.to_csv('%s/%s_upset_data.txt' % (args.output, args.rootname), sep='\t', index=None)
-        df = pd.read_csv('%s/%s_upset_data.txt' % (args.output, args.rootname), sep='\t')
+        df[args.plot_labels] = df[args.plot_labels].astype(bool)
         
         motif_df = stats_df[stats_df['motif_key'].isin(unique_motifs)].drop_duplicates(subset = 'motif_key')
         motif_df['Motif Hits'] = np.log2(motif_df['total_motif_hits'])
