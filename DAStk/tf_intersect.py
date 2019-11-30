@@ -44,13 +44,13 @@ def main():
                         help='Produce an unweighted (vs. propotional, default) venn diagram. Default = False', default=False, required=False)
     
     optional.add_argument('-sig', '--significant', dest='significant', action='store_true', \
-                        help='Produce an unweighted (vs. propotional, default) venn diagram. Default = True', default=True, required=False)
+                        help='Intersect motifs which are significant (differential MD score stats files only). Default = False.', default=False, required=False)
     
     optional.add_argument('-e', '--enriched', dest='enriched', action='store_true', \
-                        help='Produce an unweighted (vs. propotional, default) venn diagram. Default = False', default=False, required=False)
+                        help='Intersect motifs which are enriched (either differentially or raw MD scores). Default = False', default=False, required=False)
     
     optional.add_argument('-d', '--depleted', dest='depleted', action='store_true', \
-                        help='Produce an unweighted (vs. propotional, default) venn diagram. Default = False', default=False, required=False)    
+                        help='Intersect motifs which are depleted (either differentially or raw MD scores). Default = False', default=False, required=False)    
     
     optional.add_argument('-p', '--pvalue', dest='pval_threshold', metavar='<PVALUE>', \
                        help='p-value threshold for significant values which will be plotted. Default = pe-6.', default=.000001, required=False, type=float)
@@ -59,10 +59,10 @@ def main():
                        help='Differential MD score threshold for values which will be plotted (positive OR negative). Default = 0.1.', default=0.1, required=False, type=float)
     
     optional.add_argument('-md', '--depleted-threshold', dest='depleted_threshold', metavar='<PVALUE>', \
-                       help='Differential MD score threshold for values which will be plotted (positive OR negative). Default = 0.08.', default=0.08, required=False, type=float)
+                       help='Threshold for depletion raw MD score files. Default = 0.08.', default=0.08, required=False, type=float)
     
     optional.add_argument('-me', '--enriched-threshold', dest='enriched_threshold', metavar='<PVALUE>', \
-                       help='Differential MD score threshold for values which will be plotted (positive OR negative). Default = 0.2.', default=0.2, required=False, type=float)      
+                       help='Threshold for enrichment raw MD score files. Default = 0.2.', default=0.2, required=False, type=float)      
     
     optional.add_argument('-l', '--labels', dest='plot_labels', metavar='<PLOT_LABELS>', nargs='+',  \
                        help='Plot labels for files provided. Number of labels provided must match the number of files provided.', required=False, type=str)
@@ -102,14 +102,14 @@ def main():
         if ('differential' not in file):
             print('Running intersecctions on raw MD score files.')
             stats_df = pd.read_csv(file, header=None, \
-                             names=['motif', 'md_score', 'h', 'H', 'total_motif_hits', 'barcode'])
+                             names=['motif', 'MD Score', 'h', 'H', 'total_motif_hits', 'barcode'])
             stats_df['motif_key'] = stats_df['motif'].str.split('.').str[0]                
             if args.enriched &~ args.depleted:
-                stats_df_sig =  stats_df[(stats_df['md_score'] > ENRICHED_THRESH) & (stats_df['H'] >= 70 )]
+                stats_df_sig =  stats_df[(stats_df['MD Score'] > ENRICHED_THRESH) & (stats_df['H'] >= 70 )]
             elif args.depleted &~ args.enriched:
-                stats_df_sig =  stats_df[(stats_df['md_score'] < DEPLETED_THRESH) & (stats_df['H'] >= 70 )]           
+                stats_df_sig =  stats_df[(stats_df['MD Score'] < DEPLETED_THRESH) & (stats_df['H'] >= 70 )]
             elif args.enriched & args.depleted:
-                stats_df_sig =  stats_df[(stats_df['md_score'] > ENRICHED_THRESH) | (stats_df['md_score'] < DEPLETED_THRESH) & (stats_df['H'] >= 70 )]       
+                stats_df_sig =  stats_df[((stats_df['MD Score'] > ENRICHED_THRESH) | (stats_df['MD Score'] < DEPLETED_THRESH)) & (stats_df['H'] >= 70 )]       
             else:
                 raise ValueError("User must specify enriched, depleted, or both for the intersection type.")
                 
@@ -117,24 +117,24 @@ def main():
         else:
             print('Running intersecctions on differential MD score files.')            
             stats_df = pd.read_csv(file, sep='\t', header=None, \
-                             names=['motif', 'pval', 'total_motif_hits', 'ctrl_hits', 'perturb_hits', 'ctrl_md', 'perturb_md', 'diff_md'])
+                             names=['motif', 'pval', 'total_motif_hits', 'ctrl_hits', 'perturb_hits', 'ctrl_md', 'perturb_md', 'MD Score'])
             stats_df['H'] = (stats_df['ctrl_hits'] + stats_df['perturb_hits']) / 2
             stats_df['motif_key'] = stats_df['motif'].str.split('.').str[0]            
             if args.significant:
                 stats_df_sig =  stats_df[stats_df['pval'] <= PVAL_THRESH & (stats_df['H'] >= 70 )] # Set the p-value threshold for what we're calling as significant for each set              
             elif args.enriched &~ args.depleted:
-                stats_df_sig =  stats_df[stats_df['diff_md'] > DIFF_MD_THRESH & (stats_df['H'] >= 70 )] # Set the differential MD vlaue threshold                 
+                stats_df_sig =  stats_df[stats_df['MD Score'] > DIFF_MD_THRESH & (stats_df['H'] >= 70 )] # Set the differential MD vlaue threshold                 
             elif args.depleted &~ args.enriched:
-                stats_df_sig =  stats_df[stats_df['diff_md'] < -DIFF_MD_THRESH & (stats_df['H'] >= 70 )] # Set the differential MD vlaue threshold                      
+                stats_df_sig =  stats_df[stats_df['MD Score'] < -DIFF_MD_THRESH & (stats_df['H'] >= 70 )] # Set the differential MD vlaue threshold                      
             elif args.enriched & args.depleted:
-                stats_df_sig =  stats_df[(stats_df['diff_md'] < -DIFF_MD_THRESH) | (stats_df['diff_md'] > DIFF_MD_THRESH) & (stats_df['H'] >= 70 )] # Set the differential MD vlaue threshold         
+                stats_df_sig =  stats_df[(stats_df['MD Score'] < -DIFF_MD_THRESH) | (stats_df['MD Score'] > DIFF_MD_THRESH) & (stats_df['H'] >= 70 )] # Set the differential MD vlaue threshold
             else:
                 raise ValueError("User must specify pval, enriched, or depleted for the intersection type. Both enriched and depleted may also be specified.")
             
             motif_lists.append(stats_df_sig['motif_key'].tolist())
             
     unique_motifs_set = set(x for l in motif_lists for x in l)
-    unique_motifs = list(unique_motifs_set)            
+    unique_motifs = list(unique_motifs_set)   
                 
 ########################### Parse each file list into a variable for plotting in venn2/venn3 #############################
 
@@ -211,12 +211,13 @@ def main():
         data_dictionary = {'motif_key': unique_motifs, **{args.plot_labels[i]: lists[i] for i in range(len(args.plot_labels))}}  
                 
         if args.colors:
-            COLORS = [args.colors[0], args.colors[1]]
+            COLORS = [args.colors[0], args.colors[1], args.colors[2]]
         else:
-            COLORS = ['#154360', '#C70039']
+            COLORS = ['#2e506e', '#6e2e50', '#506e2e']
                 
         df = pd.DataFrame(data_dictionary)
-        df[args.plot_labels] = df[args.plot_labels].astype(bool)
+        for col in args.plot_labels:
+            df[col] = df[col].map({'False':False, 'True':True})
         
         motif_df = stats_df[stats_df['motif_key'].isin(unique_motifs)].drop_duplicates(subset = 'motif_key')
         motif_df['Motif Hits'] = np.log2(motif_df['total_motif_hits'])
@@ -227,7 +228,8 @@ def main():
         full_plot_df.to_csv('%s/%s_upset_data.txt' % (args.output, args.rootname), sep='\t')        
         upset = UpSet(full_plot_df, subset_size='count', intersection_plot_elements=3, sort_by='cardinality', show_counts=True)
         upset.add_catplot(value='Motif Hits', kind='strip', color=COLORS[0])
-        upset.add_catplot(value='Motif Hits (3kb)', kind='strip', color=COLORS[1])        
+        upset.add_catplot(value='Motif Hits (3kb)', kind='strip', color=COLORS[1])
+        upset.add_catplot(value='MD Score', kind='strip', color=COLORS[2])              
         upset.plot()
         plt.savefig('%s/%s_upset.png' % (args.output, args.rootname), dpi=600)   
         
