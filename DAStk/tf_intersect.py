@@ -11,6 +11,9 @@ import upsetplot
 import matplotlib.colors as mc
 import colorsys
 from upsetplot import UpSet
+from collections import defaultdict
+from functools import reduce
+from itertools import chain
 from matplotlib import pyplot as plt
 from matplotlib_venn import venn3, venn3_circles, venn3_unweighted, venn2
 from io import StringIO
@@ -23,6 +26,46 @@ def adjust_lightness(color, amount=0.5):
         c = color
     c = colorsys.rgb_to_hls(*mc.to_rgb(c))
     return colorsys.hls_to_rgb(c[0], max(0, min(1, amount * c[1])), c[2])
+
+def merge(d1, d2, key='motif_key'):
+    r = defaultdict(list)
+
+    for k, v in chain(d1.items(), d2.items()):
+        if k != key:
+            r[k].extend(v if isinstance(v, list) else [v])
+
+    return {**r, key: d1[key]}
+
+def explode(df, lst_cols, fill_value='', preserve_index=False):
+    # make sure `lst_cols` is list-alike
+    if (lst_cols is not None
+        and len(lst_cols) > 0
+        and not isinstance(lst_cols, (list, tuple, np.ndarray, pd.Series))):
+        lst_cols = [lst_cols]
+    # all columns except `lst_cols`
+    idx_cols = df.columns.difference(lst_cols)
+    # calculate lengths of lists
+    lens = df[lst_cols[0]].str.len()
+    # preserve original index values    
+    idx = np.repeat(df.index.values, lens)
+    # create "exploded" DF
+    res = (pd.DataFrame({
+                col:np.repeat(df[col].values, lens)
+                for col in idx_cols},
+                index=idx)
+             .assign(**{col:np.concatenate(df.loc[lens>0, col].values)
+                            for col in lst_cols}))
+    # append those rows that have empty lists
+    if (lens == 0).any():
+        # at least one list in cells is empty
+        res = (res.append(df.loc[lens==0, idx_cols], sort=False)
+                  .fillna(fill_value))
+    # revert the original index order
+    res = res.sort_index()
+    # reset index if requested
+    if not preserve_index:        
+        res = res.reset_index(drop=True)
+    return res
 
 def main():
 
@@ -98,43 +141,57 @@ def main():
 ###############################################################################################################
     print("Beginning processing..." + str(datetime.datetime.now()))
     motif_lists = []
+    data_dict_list = []
     for file in args.stats_files :
         if ('differential' not in file):
             print('Running intersecctions on raw MD score files.')
-            stats_df = pd.read_csv(file, header=None, \
-                             names=['motif', 'MD Score', 'h', 'H', 'total_motif_hits', 'barcode'])
-            stats_df['motif_key'] = stats_df['motif'].str.split('.').str[0]                
+            file_columns = ['motif', 'md_score', 'h', 'H', 'total_motif_hits']
+            stats_df = pd.read_csv(file, header=None, usecols=range(5), \
+                             names=file_columns)
+            stats_df['motif_key'] = stats_df['motif'].str.split('.').str[0]
             if args.enriched &~ args.depleted:
-                stats_df_sig =  stats_df[(stats_df['MD Score'] > ENRICHED_THRESH) & (stats_df['H'] >= 70 )]
+                stats_df_sig =  stats_df[(stats_df['md_score'] > ENRICHED_THRESH) & (stats_df['H'] >= 70 )]
             elif args.depleted &~ args.enriched:
-                stats_df_sig =  stats_df[(stats_df['MD Score'] < DEPLETED_THRESH) & (stats_df['H'] >= 70 )]
+                stats_df_sig =  stats_df[(stats_df['md_score'] < DEPLETED_THRESH) & (stats_df['H'] >= 70 )]
             elif args.enriched & args.depleted:
-                stats_df_sig =  stats_df[((stats_df['MD Score'] > ENRICHED_THRESH) | (stats_df['MD Score'] < DEPLETED_THRESH)) & (stats_df['H'] >= 70 )]       
+                stats_df_sig =  stats_df[((stats_df['md_score'] > ENRICHED_THRESH) | (stats_df['md_score'] < DEPLETED_THRESH)) & (stats_df['H'] >= 70 )]       
             else:
                 raise ValueError("User must specify enriched, depleted, or both for the intersection type.")
                 
-            motif_lists.append(stats_df_sig['motif_key'].tolist())                 
+            motif_lists.append(stats_df_sig['motif_key'].tolist())
+            data_dict_list.append(stats_df.drop(columns=['motif']).to_dict('records'))
+            explode_columns = ['md_score', 'h', 'H', 'total_motif_hits']
+            
         else:
-            print('Running intersecctions on differential MD score files.')            
+            print('Running intersecctions on differential MD score files.')
+            file_columns = ['motif', 'pval', 'total_motif_hits', 'ctrl_hits', 'perturb_hits', 'ctrl_md', 'perturb_md', 'md_score']
             stats_df = pd.read_csv(file, sep='\t', header=None, \
-                             names=['motif', 'pval', 'total_motif_hits', 'ctrl_hits', 'perturb_hits', 'ctrl_md', 'perturb_md', 'MD Score'])
+                             names=file_columns)
             stats_df['H'] = (stats_df['ctrl_hits'] + stats_df['perturb_hits']) / 2
             stats_df['motif_key'] = stats_df['motif'].str.split('.').str[0]            
             if args.significant:
                 stats_df_sig =  stats_df[stats_df['pval'] <= PVAL_THRESH & (stats_df['H'] >= 70 )] # Set the p-value threshold for what we're calling as significant for each set              
             elif args.enriched &~ args.depleted:
-                stats_df_sig =  stats_df[stats_df['MD Score'] > DIFF_MD_THRESH & (stats_df['H'] >= 70 )] # Set the differential MD vlaue threshold                 
+                stats_df_sig =  stats_df[stats_df['md_score'] > DIFF_MD_THRESH & (stats_df['H'] >= 70 )] # Set the differential MD vlaue threshold                 
             elif args.depleted &~ args.enriched:
-                stats_df_sig =  stats_df[stats_df['MD Score'] < -DIFF_MD_THRESH & (stats_df['H'] >= 70 )] # Set the differential MD vlaue threshold                      
+                stats_df_sig =  stats_df[stats_df['md_score'] < -DIFF_MD_THRESH & (stats_df['H'] >= 70 )] # Set the differential MD vlaue threshold                      
             elif args.enriched & args.depleted:
-                stats_df_sig =  stats_df[(stats_df['MD Score'] < -DIFF_MD_THRESH) | (stats_df['MD Score'] > DIFF_MD_THRESH) & (stats_df['H'] >= 70 )] # Set the differential MD vlaue threshold
+                stats_df_sig =  stats_df[(stats_df['md_score'] < -DIFF_MD_THRESH) | (stats_df['md_score'] > DIFF_MD_THRESH) & (stats_df['H'] >= 70 )] # Set the differential MD vlaue threshold
             else:
                 raise ValueError("User must specify pval, enriched, or depleted for the intersection type. Both enriched and depleted may also be specified.")
             
             motif_lists.append(stats_df_sig['motif_key'].tolist())
+            data_dict_list.append(stats_df.drop(columns=['motif']).to_dict('records'))
+            explode_columns = ['pval', 'total_motif_hits', 'ctrl_hits', 'perturb_hits', 'ctrl_md', 'perturb_md', 'md_score']
             
     unique_motifs_set = set(x for l in motif_lists for x in l)
-    unique_motifs = list(unique_motifs_set)   
+    unique_motifs = list(unique_motifs_set)
+    improved_data_dict_list = [num for elem in data_dict_list for num in elem]
+    common = defaultdict(list)
+    for d in improved_data_dict_list:
+        common[d['motif_key']].append(d)
+    
+    results_df = pd.DataFrame([reduce(merge, value) for value in common.values()])
                 
 ########################### Parse each file list into a variable for plotting in venn2/venn3 #############################
 
@@ -179,15 +236,7 @@ def main():
             plt.savefig('%s/%s_venn3.png' % (args.output, args.rootname), dpi=600)
             
     elif (len(args.stats_files) > 3) & (len(args.stats_files) < 10):
-        a = []
-        b = []
-        c = []
-        d = []
-        e = []
-        f = []
-        g = []
-        h = []
-        i = []            
+        a, b, c, d, e, f, g, h, i = ([] for i in range(9))       
         if len(args.stats_files) == 4:
             lists = [a,b,c,d]
         elif len(args.stats_files) == 5:
@@ -215,17 +264,20 @@ def main():
         else:
             COLORS = ['#2e506e', '#6e2e50', '#506e2e']
                 
-        df = pd.DataFrame(data_dictionary)
+        index_df = pd.DataFrame(data_dictionary)
         for col in args.plot_labels:
-            df[col] = df[col].map({'False':False, 'True':True})
+            index_df[col] = index_df[col].map({'False':False, 'True':True})
         
-        motif_df = stats_df[stats_df['motif_key'].isin(unique_motifs)].drop_duplicates(subset = 'motif_key')
-        motif_df['Motif Hits'] = np.log2(motif_df['total_motif_hits'])
-        motif_df['Motif Hits (3kb)'] = np.log2(motif_df['H'])
+        motif_df = results_df[results_df['motif_key'].isin(unique_motifs)].drop_duplicates(subset = 'motif_key')
+        #test = explode(motif_df, explode_columns, fill_value='', preserve_index=True)
         
-        full_plot_df = pd.merge(motif_df, df,
-                      on=['motif_key']).set_index(args.plot_labels)    
-        full_plot_df.to_csv('%s/%s_upset_data.txt' % (args.output, args.rootname), sep='\t')        
+        full_plot_df = pd.merge(motif_df, index_df,
+                      on=['motif_key']).set_index(args.plot_labels)
+        full_plot_df.to_csv('%s/%s_upset_data.txt' % (args.output, args.rootname), sep='\t')
+        full_plot_df['Motif Hits'] = np.log2([np.array(x).mean() for x in full_plot_df['total_motif_hits'].values])        
+        full_plot_df['Motif Hits (3kb)'] = np.log2([np.array(x).mean() for x in full_plot_df['H'].values])
+        full_plot_df['MD Score'] = [np.array(x).mean() for x in full_plot_df['md_score'].values]
+        print(full_plot_df)
         upset = UpSet(full_plot_df, subset_size='count', intersection_plot_elements=3, sort_by='cardinality', show_counts=True)
         upset.add_catplot(value='Motif Hits', kind='strip', color=COLORS[0])
         upset.add_catplot(value='Motif Hits (3kb)', kind='strip', color=COLORS[1])
