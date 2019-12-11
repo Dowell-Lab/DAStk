@@ -318,11 +318,8 @@ def main():
             normalized_control_bc_data = [x / (control_nr_peaks[relevant_tf] + perturbation_nr_peaks[relevant_tf]) for x in control_bc_data]
             perturbation_bc_data = np.array(perturbation_barcodes[relevant_tf].split(';')).astype(float)
             normalized_perturbation_bc_data = [x / (control_nr_peaks[relevant_tf] + perturbation_nr_peaks[relevant_tf]) for x in perturbation_bc_data]
-            
-            if min(normalized_control_bc_data) < min(normalized_perturbation_bc_data):
-                MIN_VAL = min(normalized_control_bc_data)
-            else:
-                MIN_VAL = min(normalized_perturbation_bc_data)
+            print(normalized_control_bc_data)
+            print(normalized_perturbation_bc_data)            
                 
             if max(normalized_control_bc_data) > max(normalized_perturbation_bc_data):
                 MAX_VAL = max(normalized_control_bc_data)
@@ -332,14 +329,14 @@ def main():
             heat_m = np.nan * np.empty(shape=(int(HISTOGRAM_BINS/4), HISTOGRAM_BINS))
             for row in range(int(HISTOGRAM_BINS/4)):
                 heat_m[row] = normalized_control_bc_data
-                ax0.matshow(heat_m, cmap=cm.YlGnBu, vmin=MIN_VAL, vmax=MAX_VAL)
+                ax0.matshow(heat_m, cmap=cm.YlGnBu, vmin=0, vmax=MAX_VAL)
             ax0.axis('off')
             ax0.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (control_nr_peaks[relevant_tf], control_mds[relevant_tf]), ha='center', size=18, zorder=0)
             ax0.text(HISTOGRAM_BINS/2, -10, label_1_str, ha='center', size=18, zorder=0)
             
             for row in range(int(HISTOGRAM_BINS/4)):
                 heat_m[row] = normalized_perturbation_bc_data
-                ax1.matshow(heat_m, cmap=cm.YlGnBu, vmin=MIN_VAL, vmax=MAX_VAL)
+                ax1.matshow(heat_m, cmap=cm.YlGnBu, vmin=0, vmax=MAX_VAL)
             ax1.axis('off')
             ax1.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (perturbation_nr_peaks[relevant_tf], perturbation_mds[relevant_tf]), ha='center', size=18, zorder=0)
             ax1.text(HISTOGRAM_BINS/2, -10, label_2_str, ha='center', size=18, zorder=0)

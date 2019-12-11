@@ -112,7 +112,7 @@ def main():
     ax.xaxis.set_major_locator(loc)     
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.tick_params(axis='x',reset=False,which='both',length=5,width=1)
+    ax.tick_params(axis='x',reset=False,which='both',length=4,width=1)
     y_bound = max(np.abs(np.min(delta_md)), np.max(delta_md)) + 0.01
     plt.ylim(-1 * y_bound, y_bound)
     plt.tight_layout()
