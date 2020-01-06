@@ -28,6 +28,8 @@ def main():
                     help='Transcription factor you would like to plot. Should be full prefix before the .bed extension printed in the MD score output (e.g. JUND_HUMAN.H11MO.0.A).', required=True, type=str)
     parser.add_argument('-o', '--output', dest='output_dir', metavar='OUTPUT_DIR', \
                     help='Path to directory where plot will be saved.', required=True, type=str)
+    parser.add_argument('-g', '--global-normalization', dest='global_norm', action='store_true', \
+                        help='When specified, output barcodes will be normalized according to total number of motif hits throughout the genome (i.e. total significantly called regions from FIMO scan).', default=False, required=False)       
     parser.add_argument('-s', '--single', dest='single', action='store_true', \
                     help='Generate a single barcode rather than a side-by-side comparison.', default=False, required=False)
     parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.3.1')       
@@ -96,18 +98,25 @@ def main():
                     
     print('Plotting barcode(s)... ' + str(datetime.datetime.now()))            
             
+    BARCODE_COLOR = cm.get_cmap('cividis', 256)     
+    
     if args.single:            
         plt.clf()
         plt.title('Barcode plots for %s' % relevant_tf)
         fig, (ax0) = plt.subplots(ncols=1)
         
-        control_bc_data = np.array(control_barcodes[relevant_tf].split(';'))
+        control_bc_data = np.array(control_barcodes[relevant_tf].split(';')).astype(float)
+        
+        if args.global_norm:
+        # This value is just the total number of FIMO hits across the genome for the given pval cutoff
+            control_bc_data = [x / (control_total_motifs[relevant_tf]) for x in control_bc_data]            
+            BARCODE_COLOR = cm.YlOrRd        
+            
         # Condense the barcode to half the bins for prettier display
-        control_bc_data = control_bc_data.astype(int)
         heat_m = np.nan * np.empty(shape=(int(HISTOGRAM_BINS/4), HISTOGRAM_BINS))
         for row in range(int(HISTOGRAM_BINS/4)):
             heat_m[row] = control_bc_data
-            ax0.matshow(heat_m, cmap=cm.YlGnBu)
+            ax0.matshow(heat_m, cmap=BARCODE_COLOR, vmin=0, vmax=max(control_bc_data))
         ax0.axis('off')
         ax0.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (control_nr_peaks[relevant_tf], control_mds[relevant_tf]), ha='center', size=12, zorder=0)
         ax0.text(HISTOGRAM_BINS/2, -5, assay_1, ha='center', size=12, zorder=0)
@@ -118,23 +127,35 @@ def main():
         plt.title('Barcode plots for %s' % relevant_tf)
         fig, (ax0, ax1) = plt.subplots(ncols=2)
         
-        control_bc_data = np.array(control_barcodes[relevant_tf].split(';'))
+        control_bc_data = np.array(control_barcodes[relevant_tf].split(';')).astype(float)
+        perturbation_bc_data = np.array(perturbation_barcodes[relevant_tf].split(';')).astype(float)        
+        
+        if args.global_norm:
+        # control_total_motifs[relevant_tfit] should be the same as perturbation_total_motifs[relevant_tf]
+        # This value is just the total number of FIMO hits across the genome for the given pval cutoff
+            control_bc_data = [x / (control_total_motifs[relevant_tf]) for x in control_bc_data]            
+            perturbation_bc_data = [x / (perturbation_total_motifs[relevant_tf]) for x in perturbation_bc_data]
+            BARCODE_COLOR = cm.YlOrRd       
+            
+        ### Set max heat to the barcode with more hits (default)
+        if max(control_bc_data) > max(perturbation_bc_data):
+            MAX_VAL = max(control_bc_data)
+        else:
+            MAX_VAL = max(perturbation_bc_data)               
+        
         # Condense the barcode to half the bins for prettier display
-        control_bc_data = control_bc_data.astype(int)
         heat_m = np.nan * np.empty(shape=(int(HISTOGRAM_BINS/4), HISTOGRAM_BINS))
         for row in range(int(HISTOGRAM_BINS/4)):
             heat_m[row] = control_bc_data
-            ax0.matshow(heat_m, cmap=cm.YlGnBu)
+            ax0.matshow(heat_m, cmap=BARCODE_COLOR, vmin=0, vmax=MAX_VAL)
         ax0.axis('off')
         ax0.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (control_nr_peaks[relevant_tf], control_mds[relevant_tf]), ha='center', size=12, zorder=0)
         ax0.text(HISTOGRAM_BINS/2, -5, assay_1, ha='center', size=12, zorder=0)
         
-        perturbation_bc_data = np.array(perturbation_barcodes[relevant_tf].split(';'))
-        perturbation_bc_data = perturbation_bc_data.astype(int)
         heat_m = np.nan * np.empty(shape=(int(HISTOGRAM_BINS/4), HISTOGRAM_BINS))
         for row in range(int(HISTOGRAM_BINS/4)):
             heat_m[row] = perturbation_bc_data
-            ax1.matshow(heat_m, cmap=cm.YlGnBu)
+            ax1.matshow(heat_m, cmap=BARCODE_COLOR, vmin=0, vmax=MAX_VAL)
         ax1.axis('off')
         ax1.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (perturbation_nr_peaks[relevant_tf], perturbation_mds[relevant_tf]), ha='center', size=12, zorder=0)
         ax1.text(HISTOGRAM_BINS/2, -5, assay_2, ha='center', size=12, zorder=0)
