@@ -19,6 +19,8 @@ from matplotlib_venn import venn3, venn3_circles, venn3_unweighted, venn2
 from io import StringIO
 from argparse import RawTextHelpFormatter
 
+######## For adjusting darkness/lightness in venn diagrams
+
 def adjust_lightness(color, amount=0.5):
     try:
         c = mc.cnames[color]
@@ -26,6 +28,8 @@ def adjust_lightness(color, amount=0.5):
         c = color
     c = colorsys.rgb_to_hls(*mc.to_rgb(c))
     return colorsys.hls_to_rgb(c[0], max(0, min(1, amount * c[1])), c[2])
+
+######## For merging multiple dictionaries on a matching key
 
 def merge(d1, d2, key='motif_key'):
     r = defaultdict(list)
@@ -35,6 +39,8 @@ def merge(d1, d2, key='motif_key'):
             r[k].extend(v if isinstance(v, list) else [v])
 
     return {**r, key: d1[key]}
+
+####### Function to "explode" Pandas dataframes. As of v.0.25.3, this is now available as a function, but is not yet super fine-tunable
 
 def explode(df, lst_cols, fill_value='', preserve_index=False):
     # make sure `lst_cols` is list-alike
@@ -66,6 +72,8 @@ def explode(df, lst_cols, fill_value='', preserve_index=False):
     if not preserve_index:        
         res = res.reset_index(drop=True)
     return res
+
+########## List of arguments for plotting
 
 def main():
 
@@ -192,8 +200,12 @@ def main():
         common[d['motif_key']].append(d)
     
     results_df = pd.DataFrame([reduce(merge, value) for value in common.values()])
+    
+#############################################################################################            
+############################### VENN DIAGRAMS ################################################
+#############################################################################################    
                 
-########################### Parse each file list into a variable for plotting in venn2/venn3 #############################
+########### Parse each file list into a variable for plotting in venn2/venn3
 
     df = pd.DataFrame(motif_lists, index=args.plot_labels).transpose()
     df.to_csv('%s/%s_motifs.txt' % (args.output, args.rootname), sep='\t', index=None)
@@ -214,7 +226,9 @@ def main():
         else:
             v = venn2(venn_list, args.plot_labels, set_colors=COLORS)
             plt.tight_layout()
-            plt.savefig('%s/%s_venn2.png' % (args.output, args.rootname), dpi=600)        
+            plt.savefig('%s/%s_venn2.png' % (args.output, args.rootname), dpi=600)
+
+########### Venn3 settings if number of files == 3
         
     elif len(args.stats_files) == 3:
         if args.colors:
@@ -235,8 +249,14 @@ def main():
             plt.tight_layout()
             plt.savefig('%s/%s_venn3.png' % (args.output, args.rootname), dpi=600)
             
-    elif (len(args.stats_files) > 3) & (len(args.stats_files) < 10):
-        a, b, c, d, e, f, g, h, i = ([] for i in range(9))       
+#############################################################################################            
+############################### USPET PLOT ##################################################
+#############################################################################################
+
+########### Set plot lists for each stats file if <= 12 files provided
+    
+    elif (len(args.stats_files) > 3) & (len(args.stats_files) <= 12):
+        a, b, c, d, e, f, g, h, i, j, k, l = ([] for i in range(12))       
         if len(args.stats_files) == 4:
             lists = [a,b,c,d]
         elif len(args.stats_files) == 5:
@@ -249,6 +269,12 @@ def main():
             lists = [a,b,c,d,e,f,g,h]                    
         elif len(args.stats_files) == 9:
             lists = [a,b,c,d,e,f,g,h,i]
+        elif len(args.stats_files) == 10:
+            lists = [a,b,c,d,e,f,g,h,i,j]
+        elif len(args.stats_files) == 11:
+            lists = [a,b,c,d,e,f,g,h,i,j,k]
+        elif len(args.stats_files) == 12:
+            lists = [a,b,c,d,e,f,g,h,i,j,k,l]            
                  
         for bin, motif_list in zip(lists, motif_lists):
             for motif in unique_motifs:
@@ -283,12 +309,13 @@ def main():
         upset.add_catplot(value='Motif Hits (3kb)', kind='strip', color=COLORS[1])
         upset.add_catplot(value='MD Score', kind='strip', color=COLORS[2])              
         upset.plot()
-        plt.savefig('%s/%s_upset.png' % (args.output, args.rootname), dpi=600)   
+        plt.savefig('%s/%s_upset.png' % (args.output, args.rootname), dpi=600)
         
     else:
-        raise ValueError("User must specify less than 10 stats files. Any other number is not supported.")
+        results_df.to_csv('%s/%s_common_motif_data.txt' % (args.output, args.rootname), sep='\t')
+        print('More than 12 files were provided. No plots will be generated, but a common motif dataframe will be saved.')
         
-    print("Done! " + str(datetime.datetime.now()))
+    print('Done! ' + str(datetime.datetime.now()))
     
     ### If we ever decide to add motif names inside of the venn diagrams
     
