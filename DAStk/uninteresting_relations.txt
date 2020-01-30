@@ -1,0 +1,34 @@
+<https://reactome.org/content/detail/R-HSA-1643685>	Disease
+<https://reactome.org/content/detail/R-HSA-212436>	Generic Transcription Pathway
+<https://reactome.org/content/detail/R-HSA-73857>	RNA Polymerase II Transcription
+<https://reactome.org/content/detail/R-HSA-74160>	Gene expression (Transcription)
+<http://purl.obolibrary.org/obo/GO_0003700>	DNA-binding transcription factor activity
+<http://purl.obolibrary.org/obo/GO_0000981>	DNA-binding transcription factor activity, RNA polymerase II-specific
+<http://purl.obolibrary.org/obo/GO_0045944>	positive regulation of transcription by RNA polymerase II
+<http://purl.obolibrary.org/obo/GO_0016480>	negative regulation of transcription by RNA polymerase II
+<http://purl.obolibrary.org/obo/GO_0051090>	regulation of DNA-binding transcription factor activity
+<http://purl.obolibrary.org/obo/GO_0000978>	RNA polymerase II proximal promoter sequence-specific DNA binding
+<http://purl.obolibrary.org/obo/GO_0003677>	DNA binding
+<http://purl.obolibrary.org/obo/GO_0001228>	DNA-binding transcription activator activity, RNA polymerase II-specific
+<http://purl.obolibrary.org/obo/GO_0043565>	sequence-specific DNA binding
+<http://purl.obolibrary.org/obo/GO_0006357>	regulation of transcription by RNA polymerase II
+<http://purl.obolibrary.org/obo/GO_0045893>	positive regulation of transcription, DNA-templated
+<http://purl.obolibrary.org/obo/GO_0045892>	negative regulation of transcription, DNA-templated
+<http://purl.obolibrary.org/obo/GO_0045944>	positive regulation of transcription by RNA polymerase II
+<http://purl.obolibrary.org/obo/GO_0000122>	negative regulation of transcription by RNA polymerase II
+<http://purl.obolibrary.org/obo/GO_0006355>	regulation of transcription, DNA-templated
+<http://purl.obolibrary.org/obo/GO_0044212>	transcription regulatory region DNA binding
+<http://purl.obolibrary.org/obo/GO_0000977>	RNA polymerase II regulatory region sequence-specific DNA binding
+<http://purl.obolibrary.org/obo/GO_0001012>	RNA polymerase II regulatory region DNA binding
+<http://purl.obolibrary.org/obo/GO_0001085>	RNA polymerase II transcription factor binding
+<http://purl.obolibrary.org/obo/GO_0006366>	transcription by RNA polymerase II
+
+<http://purl.obolibrary.org/obo/GO_0008134>	transcription factor binding
+<http://purl.obolibrary.org/obo/GO_0033613>	activating transcription factor binding
+<http://purl.obolibrary.org/obo/GO_0070491>	repressing transcription factor binding
+<http://purl.obolibrary.org/obo/GO_0001228>	DNA-binding transcription activator activity, RNA polymerase II-specific
+<http://purl.obolibrary.org/obo/GO_0001227>	DNA-binding transcription repressor activity, RNA polymerase II-specific
+<http://purl.obolibrary.org/obo/GO_0006367>	transcription initiation from RNA polymerase II promoter
+<http://purl.obolibrary.org/obo/GO_0000980>	RNA polymerase II distal enhancer sequence-specific DNA binding
+<http://purl.obolibrary.org/obo/GO_0000979>	RNA polymerase II core promoter sequence-specific DNA binding
+<http://purl.obolibrary.org/obo/GO_0000987>	proximal promoter sequence-specific DNA binding
