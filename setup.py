@@ -14,7 +14,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='DAStk',
-    version='0.3.3.9',
+    version='0.3.3.11',
     description='Differential ATAC-seq toolkit',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -39,10 +39,10 @@ setup(
     package_dir={'DAStk' : 'DAStk'},
     packages=['DAStk'],
     package_data={  'DAStk': [
-        'DAStk/public_knowledge/all_labels.tsv',
-        'DAStk/public_knowledge/HOCOMOCOv11_to_uniprot.txt',
-        'DAStk/public_knowledge/human_TFs_to_uniprot.txt',
-        'DAStk/public_knowledge/prot_reactome_interactions.pkl',
+        'public_knowledge/all_labels.tsv',
+        'public_knowledge/HOCOMOCOv11_to_uniprot.txt',
+        'public_knowledge/human_TFs_to_uniprot.txt',
+        'public_knowledge/prot_reactome_interactions.pkl',
         ]
     },
 
