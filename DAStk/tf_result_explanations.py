@@ -26,8 +26,8 @@ UNINTERESTING_RELATIONS = []
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p', '--p-value', dest='p_val', help="P-value cutoff to determine which TFs to include from DAStk's output.", required=False, default=0.05)
-    parser.add_argument('-d', '--dastk-results', dest='dastk_results', help="Results file from DAStk (*_md_scores.txt) used to find relations between the most significant TF changes in activity.", required=True)
+    parser.add_argument('-p', '--p-value', dest='p_val', help="P-value cutoff to determine which TFs to include from DAStk's output (default=0.05).", required=False, default=0.05)
+    parser.add_argument('-d', '--dastk-results', dest='dastk_results', help="Results file from DAStk (*differential_md_scores.txt) used to find relations between the most significant TF changes in activity.", required=True)
     parser.add_argument('-o', '--output', dest='output_filename', help='Output filename for the report.', required=True)
     parser.add_argument('-u', '--uninteresting-nodes', dest='uninteresting_nodes', help="File listing ontology concept URIs to ignore during the pathway searches, because they are uninformative for TFs (e.g.\"binds to DNA\") or they don't apply to the current study, just to minimize noise. One URI per line, can optionally add a description after a TAB to track the label of the ignored intersecting concepts. See the example file for a format guide.", required=False)
     parser.add_argument('-e', '--extra-concepts', dest='extra_concepts', help="File listing extra ontology concepts to include in the pathway searches, that are relevant to this study. This is a two-column (TAB-separated) list, first the ontology URI and second a label you'd like to use in the report.", required=False)
