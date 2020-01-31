@@ -119,7 +119,7 @@ def main():
                        help='Plot labels for files provided. Number of labels provided must match the number of files provided.', required=False, type=str)
     
     optional.add_argument('-c', '--colors', dest='colors', metavar='<COLORS>', nargs='+',  \
-                       help='Hex colors for files provided. Number of labels provided must match the number of files provided for venn diagrams (2 or 3 files) or equal 2 or the upset catplots (4 or more files).', required=False, type=str)       
+                       help='Hex colors for files provided. Number of labels provided must match the number of files provided for venn diagrams (2 or 3 files) or equal 2 for the upset catplots (4 or more files).', required=False, type=str)       
 
     args = parser.parse_args()
     
@@ -131,7 +131,8 @@ def main():
     
     pd.options.mode.chained_assignment = None
     
-    if len(args.stats_files) != len(args.plot_labels):
+    ### Number of files and provided files have to match if less than 12 files are provided and plotting is not disabled
+    if (len(args.stats_files) != len(args.plot_labels)) & (len(args.stats_files) <= 12):
         raise ValueError("Number of stats files provied and number of labels provided do not match -- please adjust these values such that they are equal. \n" + str(datetime.datetime.now()))
     
     try:
@@ -178,11 +179,11 @@ def main():
             stats_df['H'] = (stats_df['ctrl_hits'] + stats_df['perturb_hits']) / 2
             stats_df['motif_key'] = stats_df['motif'].str.split('.').str[0]            
             if args.significant:
-                stats_df_sig =  stats_df[stats_df['pval'] <= PVAL_THRESH & (stats_df['H'] >= 70 )] # Set the p-value threshold for what we're calling as significant for each set              
+                stats_df_sig =  stats_df[(stats_df['pval'] <= PVAL_THRESH) & (stats_df['H'] >= 70 )] # Set the p-value threshold for what we're calling as significant for each set              
             elif args.enriched &~ args.depleted:
-                stats_df_sig =  stats_df[stats_df['md_score'] > DIFF_MD_THRESH & (stats_df['H'] >= 70 )] # Set the differential MD vlaue threshold                 
+                stats_df_sig =  stats_df[(stats_df['md_score'] > DIFF_MD_THRESH) & (stats_df['H'] >= 70 )] # Set the differential MD vlaue threshold                 
             elif args.depleted &~ args.enriched:
-                stats_df_sig =  stats_df[stats_df['md_score'] < -DIFF_MD_THRESH & (stats_df['H'] >= 70 )] # Set the differential MD vlaue threshold                      
+                stats_df_sig =  stats_df[(stats_df['md_score'] < -DIFF_MD_THRESH) & (stats_df['H'] >= 70 )] # Set the differential MD vlaue threshold                      
             elif args.enriched & args.depleted:
                 stats_df_sig =  stats_df[(stats_df['md_score'] < -DIFF_MD_THRESH) | (stats_df['md_score'] > DIFF_MD_THRESH) & (stats_df['H'] >= 70 )] # Set the differential MD vlaue threshold
             else:
@@ -303,7 +304,6 @@ def main():
         full_plot_df['Motif Hits'] = np.log2([np.array(x).mean() for x in full_plot_df['total_motif_hits'].values])        
         full_plot_df['Motif Hits (3kb)'] = np.log2([np.array(x).mean() for x in full_plot_df['H'].values])
         full_plot_df['MD Score'] = [np.array(x).mean() for x in full_plot_df['md_score'].values]
-        print(full_plot_df)
         upset = UpSet(full_plot_df, subset_size='count', intersection_plot_elements=3, sort_by='cardinality', show_counts=True)
         upset.add_catplot(value='Motif Hits', kind='strip', color=COLORS[0])
         upset.add_catplot(value='Motif Hits (3kb)', kind='strip', color=COLORS[1])
