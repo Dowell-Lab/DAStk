@@ -14,7 +14,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='DAStk',
-    version='0.3.2',
+    version='0.3.3.9',
     description='Differential ATAC-seq toolkit',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -38,6 +38,13 @@ setup(
 
     package_dir={'DAStk' : 'DAStk'},
     packages=['DAStk'],
+    package_data={  'DAStk': [
+        'DAStk/public_knowledge/all_labels.tsv',
+        'DAStk/public_knowledge/HOCOMOCOv11_to_uniprot.txt',
+        'DAStk/public_knowledge/human_TFs_to_uniprot.txt',
+        'DAStk/public_knowledge/prot_reactome_interactions.pkl',
+        ]
+    },
 
     install_requires=[
         'argparse',
@@ -50,6 +57,7 @@ setup(
         'pybedtools',
         'futures',
         'scikit-learn',
+        'networkx>=2',
     ],
 
     entry_points={
@@ -58,6 +66,7 @@ setup(
             'differential_md_score=DAStk:differential_md_score',
             'barcode_plot=DAStk:barcode_plot',
             'ma_plot=DAStk:ma_plot',
+            'tf_result_explanations=DAStk:tf_result_explanations',
         ],
     },
 
