@@ -11,12 +11,12 @@ from os import path
 # $ python3 tf_change_explanations.py -p 0.01 -d some_directory/Untreated_vs_Treatment_differential_md_scores.txt -o untreated_vs_treated_explanation.txt
 #
 
+basedir = path.split(__file__)[0]
+KNOWLEDGE_GRAPH = "%s/public_knowledge/prot_reactome_interactions.pkl" % basedir
+TF_UNIPROT_MAP = "%s/public_knowledge/human_TFs_to_uniprot.txt" % basedir
+TF_HOCOMOCO_UNIPROT_MAP = "%s/public_knowledge/HOCOMOCOv11_to_uniprot.txt" % basedir
+ONTO_LABELS = "%s/public_knowledge/all_labels.tsv" % basedir
 
-resources_dir = path.join(path.dirname(__file__), 'public_knowledge')
-KNOWLEDGE_GRAPH = "%s/prot_reactome_interactions.pkl" % resources_dir
-TF_UNIPROT_MAP = "%s/human_TFs_to_uniprot.txt" % resources_dir
-TF_HOCOMOCO_UNIPROT_MAP = "%s/HOCOMOCOv11_to_uniprot.txt" % resources_dir
-ONTO_LABELS = "%s/all_labels.tsv" % resources_dir
 PATH_SEARCH_DEPTH = 2
 
 EXTRA_NODES = []
