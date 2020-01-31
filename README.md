@@ -203,14 +203,14 @@ Please refer to the complete [FIMO](http://meme-suite.org/doc/fimo.html?man_type
 
 Please cite DAStk if you have used it in your research!  
 
-*Tripodi, I.J.; Allen, M.A.; Dowell, R.D.	Detecting Differential Transcription Factor Activity from ATAC-Seq Data. Molecules 2018, 23, 1136.*  
+*Tripodi, I.J.; Allen, M.A.; Dowell, R.D.	[Detecting Differential Transcription Factor Activity from ATAC-Seq Data](https://www.mdpi.com/1420-3049/23/5/1136). Molecules 2018, 23, 1136.*  
 
 If you have used the provided scanned motif regions from HOCOMOCO, please cite them as well:
 
-*Kulakovskiy, I.V., Vorontsov, I.E., Yevshin, I.S., Sharipov, R.N., Fedorova, A.D., Rumynskiy, E.I., Medvedeva, Y.A., Magana-Mora, A., Bajic, V.B., Papatsenko, D.A., et al. (2018). HOCOMOCO: towards a complete collection of transcription factor binding models for human and mouse via large-scale ChIP-Seq analysis. Nucleic Acids Res 46, D252–D259.*
+*Kulakovskiy, I.V., Vorontsov, I.E., Yevshin, I.S., Sharipov, R.N., Fedorova, A.D., Rumynskiy, E.I., Medvedeva, Y.A., Magana-Mora, A., Bajic, V.B., Papatsenko, D.A., et al. (2018). [HOCOMOCO: towards a complete collection of transcription factor binding models for human and mouse via large-scale ChIP-Seq analysis](https://academic.oup.com/nar/article/46/D1/D252/4616875). Nucleic Acids Res 46, D252–D259.*
 
 
-For any questions or bug reports, please use the Issue Tracker or email us:  
+For any questions or bug reports, please use the Issue Tracker.
 
 *Ignacio Tripodi (ignacio.tripodi at colorado.edu)*  
 *Computer Science Department, BioFrontiers Institute*  
