@@ -50,14 +50,14 @@ def main():
     stats_file = open('%s' % args.stats)
     for line in stats_file:
         line_chunks = line.split('\t')
-        if line_chunks[6] != '0.0\n' :
+        if (line_chunks[7] != '0.0\n') & (line_chunks[7] != '0\n') :
             labels.append(line_chunks[0])
             p_value = float(line_chunks[1])
             p_values.append(float(line_chunks[1]))
-            nr_peaks.append(np.log2(int(line_chunks[2]) + int(line_chunks[3])))
-            p1 = float(line_chunks[4])
-            p2 = float(line_chunks[5])
-            delta_md.append(float(line_chunks[6]))
+            nr_peaks.append(np.log2(int(line_chunks[3]) + int(line_chunks[4])))
+            p1 = float(line_chunks[5])
+            p2 = float(line_chunks[6])
+            delta_md.append(float(line_chunks[7]))
         
             if p_value < (P_VALUE_CUTOFF / 10) and p2 > p1:
                 colors.append('#c64e50')
@@ -112,7 +112,7 @@ def main():
     ax.xaxis.set_major_locator(loc)     
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.tick_params(axis='x',reset=False,which='both',length=5,width=1)
+    ax.tick_params(axis='x',reset=False,which='both',length=4,width=1)
     y_bound = max(np.abs(np.min(delta_md)), np.max(delta_md)) + 0.01
     plt.ylim(-1 * y_bound, y_bound)
     plt.tight_layout()

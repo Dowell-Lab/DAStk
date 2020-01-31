@@ -22,11 +22,12 @@ import concurrent.futures
 
 
 def get_differential_md_scores(diff_params):
-    (label, p1, p2, n1, n2, control_barcode, perturbation_barcode, is_chip, pval_cutoff) = diff_params
+    (label, p1, p2, n1, n2, total_motifs, control_barcode, perturbation_barcode, is_chip, pval_cutoff) = diff_params
     control = p1
     perturbation = p2
     nr_peaks = n1 + n2
     delta_md = p2 - p1
+    total_nr_motifs = total_motifs
     perturbation_bc_array = np.array(perturbation_barcode.split(';'))
     control_bc_array = np.array(control_barcode.split(';'))
 
@@ -119,6 +120,7 @@ def get_differential_md_scores(diff_params):
                          'p_value': p_value, \
                          'control_peaks': int(n1), \
                          'perturbation_peaks': int(n2), \
+                         'total_nr_motifs': int(total_nr_motifs), \
                          'control_md_score': round(p1, 3), \
                          'perturbation_md_score': round(p2, 3), \
                          'color': color, \
@@ -157,6 +159,8 @@ def main():
                         help='Number of threads for multi-processing. Defaults to 1.', default=1, required=False)
     parser.add_argument('-c', '--chip', dest='chip', action='store_true', \
                         help='If the input is ChIP data, it may be useful to specify this flag as it will change the variance calulation because a large difference in sites between control and treatment will be expected.', default=False, required=False)
+    parser.add_argument('-g', '--global-normalization', dest='global_norm', action='store_true', \
+                        help='When specified, output barcodes will be normalized according to total number of motif hits throughout the genome (i.e. total significantly called regions from FIMO scan).', default=False, required=False)    
     parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.3.1')   
     args = parser.parse_args()
 
@@ -208,6 +212,7 @@ def main():
                                     float(perturbation_mds[label]), \
                                     float(control_nr_peaks[label]), \
                                     float(perturbation_nr_peaks[label]), \
+                                    int(perturbation_total_motifs[label]), \
                                     control_barcodes[label], \
                                     perturbation_barcodes[label], \
                                     args.chip, \
@@ -221,8 +226,8 @@ def main():
     differential_stats_file = open("%s/%s_vs_%s_differential_md_scores.txt" \
                                 % (args.output_dir, assay_1_prefix, assay_2_prefix), 'w')
     for stat in sorted_differential_stats:
-        differential_stats_file.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % \
-                        (stat['motif_name'], stat['p_value'], stat['control_peaks'], \
+        differential_stats_file.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % \
+                        (stat['motif_name'], stat['p_value'], stat['total_nr_motifs'], stat['control_peaks'], \
                         stat['perturbation_peaks'], stat['control_md_score'], stat['perturbation_md_score'], \
                         stat['delta_md']))
     differential_stats_file.close()
@@ -310,23 +315,36 @@ def main():
             fig, (ax0, ax1) = plt.subplots(ncols=2)
             fig.suptitle('Barcode plots for %s' % relevant_tf)
 
-            control_bc_data = np.array(control_barcodes[relevant_tf].split(';'))
-            # Condense the barcode to half the bins for prettier display
-            control_bc_data = control_bc_data.astype(int)
+            ### Normalize barcodes by total "N" (number of hits genome-wide) for given motif. Allows for normalization across different cell-lines
+            control_bc_data = np.array(control_barcodes[relevant_tf].split(';')).astype(float)
+            perturbation_bc_data = np.array(perturbation_barcodes[relevant_tf].split(';')).astype(float)
+            BARCODE_COLOR = cm.get_cmap('cividis', 256)
+            
+            if args.global_norm:
+            # control_total_motifs[relevant_tfit] should be the same as perturbation_total_motifs[relevant_tf]
+            # This value is just the total number of FIMO hits across the genome for the given pval cutoff
+                control_bc_data = [x / (control_total_motifs[relevant_tf]) for x in control_bc_data]            
+                perturbation_bc_data = [x / (perturbation_total_motifs[relevant_tf]) for x in perturbation_bc_data]
+                BARCODE_COLOR = cm.YlOrRd
+
+            ### Set max heat to the barcode with more hits (default)
+            if max(control_bc_data) > max(perturbation_bc_data):
+                MAX_VAL = max(control_bc_data)
+            else:
+                MAX_VAL = max(perturbation_bc_data)                
+            
+            # Condense the barcode to half the bins for prettier display            
             heat_m = np.nan * np.empty(shape=(int(HISTOGRAM_BINS/4), HISTOGRAM_BINS))
             for row in range(int(HISTOGRAM_BINS/4)):
                 heat_m[row] = control_bc_data
-                ax0.matshow(heat_m, cmap=cm.YlGnBu)
+                ax0.matshow(heat_m, cmap=BARCODE_COLOR, vmin=0, vmax=MAX_VAL)
             ax0.axis('off')
             ax0.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (control_nr_peaks[relevant_tf], control_mds[relevant_tf]), ha='center', size=18, zorder=0)
             ax0.text(HISTOGRAM_BINS/2, -10, label_1_str, ha='center', size=18, zorder=0)
-
-            perturbation_bc_data = np.array(perturbation_barcodes[relevant_tf].split(';'))
-            perturbation_bc_data = perturbation_bc_data.astype(float)
-            heat_m = np.nan * np.empty(shape=(int(HISTOGRAM_BINS/4), HISTOGRAM_BINS))
+            
             for row in range(int(HISTOGRAM_BINS/4)):
                 heat_m[row] = perturbation_bc_data
-                ax1.matshow(heat_m, cmap=cm.YlGnBu)
+                ax1.matshow(heat_m, cmap=BARCODE_COLOR, vmin=0, vmax=MAX_VAL)
             ax1.axis('off')
             ax1.text(HISTOGRAM_BINS/2, HISTOGRAM_BINS/2, 'N(total) = %d\nMD-score = %.3f' % (perturbation_nr_peaks[relevant_tf], perturbation_mds[relevant_tf]), ha='center', size=18, zorder=0)
             ax1.text(HISTOGRAM_BINS/2, -10, label_2_str, ha='center', size=18, zorder=0)
