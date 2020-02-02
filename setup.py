@@ -14,7 +14,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='DAStk',
-    version='1.0.0.1',
+    version='1.0.0',
     description='Differential ATAC-seq toolkit',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -58,6 +58,7 @@ setup(
         'futures',
         'scikit-learn',
         'networkx>=2',
+        'upsetplot',
     ],
 
     entry_points={
@@ -67,6 +68,7 @@ setup(
             'barcode_plot=DAStk:barcode_plot',
             'ma_plot=DAStk:ma_plot',
             'tf_result_explanations=DAStk:tf_result_explanations',
+            'tf_intersect=DAStk:tf_intersect',
         ],
     },
 
