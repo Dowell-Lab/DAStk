@@ -136,7 +136,9 @@ This file can then be specified using the -c/--chromosomes argument in process_a
 
 ### Normalization
 
-If the -g/--global-normalization argument is used in the `differential_md_score` module, then the total number of genome-wide motif hits will be used to normalize the barcode plots. Otherwise, the barcode plots will simply be set to the same max heat to facilitate better visualization of relative motif density between conditions. This normalization argument has also been implemented in the `barcode_plot` plotting module and as such the output stats file from `differential_md_score` now include the total number of genome-wide motif hits for each motif.
+If the -g/--global-normalization argument is used in the `differential_md_score` module, then the total number of genome-wide motif hits will be used to normalize the barcode plots. This may be helpful in better assessing changes across different perturbations/experiments or cell lines. Otherwise, the barcode plots will simply be set to the same max heat to facilitate better visualization of relative motif density between conditions. This normalization argument has also been implemented in the `barcode_plot` plotting module and as such the output stats file from `differential_md_score` now include the total number of genome-wide motif hits for each motif.
+
+**NOTE** Using the -g/--global-normalization argument will also result in a different heatmap color (YlOrRd) rather than the default (cividis) so that the two normalization types are easily differentiated. 
 
 ### Altering Window Size
 
