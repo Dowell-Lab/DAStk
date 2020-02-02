@@ -134,6 +134,10 @@ If your genome is not incuded in the UCSC genome repository, you will instead ne
 
 This file can then be specified using the -c/--chromosomes argument in process_atac. Scaffold chromosomes will be removed.
 
+### Normalization
+
+If the -g/--global-normalization argument is used in the `differential_md_score` module, then the total number of genome-wide motif hits will be used to normalize the barcode plots. Otherwise, the barcode plots will simply be set to the same max heat to facilitate better visualization of relative motif density between conditions. This normalization argument has also been implemented in the `barcode_plot` plotting module and as such the output stats file from `differential_md_score` now include the total number of genome-wide motif hits for each motif.
+
 ### Altering Window Size
 
 While we strongly recommend using the default 1500bp radius window in calculating the MD score (and differential MD score), as of v0.3.0 we now have a radius argument (-r/--radius) which will allow you to expand or shrink this window. If changed, the MD score calculation will follow the same principle in that it will be a ratio of motifs hits within the cetner 1/10th of the window relative divided by the number of total motif hits within the window. For example, if the user specifies a radius of 2000bp, there will be a window size of 4000bp, a center of 400bp around the features of interest, and the MD score will be # motif hits within 400bp/ # motifs within 4000bp. Keep in mind that expanding this window may be useful in visualization, but will result in an MD score approaching 0.1 (background).
