@@ -36,6 +36,7 @@ This is the simplest option, and it will also create the executable commands `pr
 * pybedtools
 * futures
 * scikit-learn
+* upsetplot
 
 These scripts feature comprehensive help when called with the `--help` argument. Every argument provides a short and long form (i.e. `-t` or `--threads`). There are normally two steps in a typical workflow:
 
