@@ -185,6 +185,9 @@ def main():
     #evaluation_radius = 750   # in bps
     ATAC_WIDTH_THRESHOLD = 5000   # in bp
 
+    if args.genome != '' and args.chromosomes != '':
+        raise ValueError("The --genome and --chromosomes arguments are mutually exclusive. Please provide only one of them.")
+
     print('Starting --- ' + str(datetime.datetime.now()))
     output_prefix = os.path.splitext(os.path.basename(args.atac_peaks_filename))[0]
     input_file_statinfo = os.stat(args.atac_peaks_filename)    
