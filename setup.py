@@ -50,6 +50,7 @@ setup(
         'pybedtools',
         'futures',
         'scikit-learn',
+        'upsetplot',
     ],
 
     entry_points={
@@ -58,6 +59,7 @@ setup(
             'differential_md_score=DAStk:differential_md_score',
             'barcode_plot=DAStk:barcode_plot',
             'ma_plot=DAStk:ma_plot',
+            'tf_intersect=DAStk:tf_intersect',
         ],
     },
 
