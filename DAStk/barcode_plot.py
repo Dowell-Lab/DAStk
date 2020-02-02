@@ -32,7 +32,7 @@ def main():
                         help='When specified, output barcodes will be normalized according to total number of motif hits throughout the genome (i.e. total significantly called regions from FIMO scan).', default=False, required=False)       
     parser.add_argument('-s', '--single', dest='single', action='store_true', \
                     help='Generate a single barcode rather than a side-by-side comparison.', default=False, required=False)
-    parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.3.1')       
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s 1.0.0')       
     args = parser.parse_args()
 
     if not args.single:
