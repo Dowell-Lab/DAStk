@@ -119,7 +119,7 @@ def find_motifs_in_chrom(current_chrom, files):
         except StopIteration:
             break
 
-    return [tf_distances, g_h, g_H, total_motif_sites]
+    return np.array([tf_distances, g_h, g_H, total_motif_sites], dtype=object)
 
 
 def get_md_score(tf_motif_filename, mp_threads, atac_peaks_filename, CHROMOSOMES, radius):
