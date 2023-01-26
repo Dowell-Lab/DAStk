@@ -9,15 +9,18 @@ from os import path
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
+try:
+    import pypandoc
+    long_description = pypandoc.convert_file('README.md', 'rst')
+except(IOError, ImportError):
+    long_description = open('README.md').read()
 
 setup(
     name='DAStk',
     version='1.0.1',
     description='Differential ATAC-seq toolkit',
-    long_description=long_description,
     long_description_content_type="text/markdown",
+    long_description=long_description,
     license='BSD',
     url='https://github.com/Dowell-Lab/DAStk',
     download_url='https://github.com/Dowell-Lab/DAStk/archive/refs/tags/v1.0.1.tar.gz',
