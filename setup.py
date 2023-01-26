@@ -13,7 +13,7 @@ long_description = open('README.rst').read()
 
 setup(
     name='DAStk',
-    version='1.0.1',
+    version='1.0.1r1',
     description='Differential ATAC-seq toolkit',
     long_description=long_description,
     license='BSD',
