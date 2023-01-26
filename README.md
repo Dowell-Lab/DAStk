@@ -106,15 +106,12 @@ You can optionally provide a list of "uninteresting" intersections by listing th
     CEBPB, CEBPD, CEBPE, ELK1, HLF, NFIA, NFIB, NFIX, NFYB, NRF1, TP53, ZNF180, ZNF341, ZNF396, ZNF432, ZNF441, ZNF519, ZNF529, ZNF540, ZNF93
 
     Here's what we know about these TFs presenting significant activity changes (p=1.00E-03):
-    -----------------------------------------------------------------------------------------
 
     Direct interactions between each of these TFs:
-    --------------------------------
     NFYB interacts with TP53
     TP53 interacts with CEBPB
 
     Other ways these TFs are related:
-    ---------------------------------
     CEBPB, CEBPE, ELK1, HLF, NFIA, NFIB, NFIX, NFYB, NRF1, TP53, ZNF180, ZNF341, ZNF396, ZNF441, ZNF519, ZNF529, ZNF540, and ZNF93: located in nucleus
 
     ZNF180, ZNF341, ZNF396, ZNF432, ZNF441, ZNF519, ZNF529, ZNF540, and ZNF93: has component Zinc finger, C2H2 type
