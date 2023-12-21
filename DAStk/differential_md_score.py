@@ -298,7 +298,7 @@ def main():
     plt.xlabel(u'$\log_2$(Sum #peaks overlapping ' + args.window_size + ' window)', fontsize=14)
     plt.ylabel(u'${\Delta}$ MD-score', fontsize=14)
     plt.xlim(np.min(nr_peaks), np.max(nr_peaks) + 1)
-    plt.xscale('log',basex=2)
+    plt.xscale('log',base=2)
     loc = plticker.MultipleLocator(base=2.0) # this locator puts ticks at regular intervals
     ax.xaxis.set_major_locator(loc)    
     ax.spines['top'].set_visible(False)
