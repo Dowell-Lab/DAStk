@@ -269,6 +269,9 @@ def main():
             short_text = short_text.split('_', 1)[0]
             texts.append(ax.text(x, y, u'%s' % short_text, fontsize=8, color=label_color))
             most_relevant_tfs.append(text)
+    if len(texts) == 0:
+        print("None of the motifs present a significant difference, based on the given p-value cutoff (%s)" % P_VALUE_CUTOFF)
+        sys.exit(0)
     #adjust_text(texts, force_points=1, on_basemap=True, expand_points=(5,5), expand_text=(3,3), arrowprops=dict(arrowstyle="-", lw=1, color='grey', alpha=0.5))
     adjust_text(texts, force_points=1, expand_points=(2,2), expand_text=(2,2), arrowprops=dict(arrowstyle="-", lw=1, color='black', alpha=0.8))
     
